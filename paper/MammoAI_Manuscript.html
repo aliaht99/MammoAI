@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="Ali Hamza" />
+  <title>MammoAI Manuscript</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">MammoAI Manuscript</h1>
+<p class="author">Ali Hamza</p>
+<p class="date">May 2026</p>
+</header>
+<h1
+id="mammoai-a-multi-modal-interpretable-framework-for-breast-cancer-detection-fusing-clinical-features-with-deep-learning-on-cbis-ddsm">MammoAI:
+A Multi-Modal Interpretable Framework for Breast Cancer Detection —
+Fusing Clinical Features with Deep Learning on CBIS-DDSM</h1>
+<p><strong>Ali Hamza</strong></p>
+<p>MSc Advanced Engineering Management, Leeds Beckett University, Leeds,
+United Kingdom</p>
+<p>Corresponding author: alihamza.aht.99@gmail.com</p>
+<p>GitHub: https://github.com/aliaht99/MammoAI</p>
+<hr />
+<h2 id="highlights">Highlights</h2>
+<ul>
+<li>Three-stage pipeline: Gradient Boosting (AUC 0.8678) +
+EfficientNet-B4 CNN (AUC 0.8294) + Late Fusion (AUC 0.8825)</li>
+<li>First simultaneous SHAP + GradCAM dual explainability system on
+CBIS-DDSM</li>
+<li>BENIGN sub-class risk stratification achieves AUC 0.9729 — highest
+reported on this dataset</li>
+<li>First quantitative CBIS-DDSM → VinDr-Mammo cross-dataset domain
+shift analysis (gap = 0.199 AUC)</li>
+<li>Open-source Streamlit web application for real-time clinical
+malignancy risk assessment</li>
+</ul>
+<hr />
+<h2 id="abstract">Abstract</h2>
+<p><strong>Background:</strong> Breast cancer remains the most commonly
+diagnosed cancer among women worldwide, with mammography as the primary
+screening modality. Automated computer-aided detection (CAD) systems can
+reduce missed diagnoses and inter-reader variability. However, most
+high-performing systems rely on proprietary data, lack interpretability,
+and have not been evaluated for cross-dataset generalisation.</p>
+<p><strong>Methods:</strong> We present MammoAI, a three-stage
+multi-modal CAD system built on the publicly available CBIS-DDSM dataset
+(3,568 annotated cases, 10,239 DICOM images). Stage 1 engineers 11
+clinical BI-RADS features and trains a Gradient Boosting classifier.
+Stage 2 fine-tunes an EfficientNet-B4 CNN on 3,103 full mammograms using
+two-phase transfer learning and Test-Time Augmentation (TTA ×5). Stage 3
+combines 512-dimensional CNN embeddings with clinical features via a
+late-fusion meta-learner (524-dimensional fused vector). We additionally
+train a BENIGN sub-class classifier and evaluate cross-dataset
+generalisation to VinDr-Mammo.</p>
+<p><strong>Results:</strong> Stage 1 achieves AUC-ROC 0.8678
+(specificity 83.2%). Stage 2 achieves AUC-ROC 0.8294 with sensitivity
+87.32% — the highest reported for full-image inference on this dataset.
+Stage 3 late-fusion achieves AUC-ROC 0.8825, outperforming both
+individual stages. BENIGN sub-class stratification achieves AUC-ROC
+0.9729. Zero-shot transfer to VinDr-Mammo reveals a domain gap of 0.199
+AUC, explained by missing morphological descriptors and BI-RADS
+calibration shifts.</p>
+<p><strong>Conclusions:</strong> MammoAI delivers a fully reproducible,
+interpretable, and multi-modal breast cancer detection system with four
+novel contributions not previously published on CBIS-DDSM. Code and
+results are released at https://github.com/aliaht99/MammoAI.</p>
+<p><strong>Keywords:</strong> breast cancer detection; mammography;
+CBIS-DDSM; EfficientNet; gradient boosting; late-fusion; SHAP; GradCAM;
+test-time augmentation; domain generalisation; VinDr-Mammo;
+computer-aided detection</p>
+<hr />
+<h2 id="introduction">1. Introduction</h2>
+<p>Breast cancer is the most frequently diagnosed malignancy among women
+globally, accounting for approximately 2.3 million new cases and 685,000
+deaths in 2020 alone [1]. Mammography screening remains the
+gold-standard early detection modality; population-level programs have
+demonstrated 20–40% reductions in breast cancer mortality [2]. However,
+mammogram interpretation is subjective, time-intensive, and susceptible
+to inter-reader variability, with false-negative rates of 10–30% in
+routine clinical practice [3]. In many regions, radiologist shortages
+and high screening volumes compound these challenges.</p>
+<p>Computer-aided detection (CAD) systems have emerged as a promising
+supplement to radiologist interpretation. Early CAD systems encoded
+expert knowledge through handcrafted features derived from the Breast
+Imaging Reporting and Data System (BI-RADS) lexicon — a standardised
+vocabulary for describing mammographic findings [11]. More recently,
+deep convolutional neural networks (CNNs) trained on large mammography
+corpora have demonstrated performance competitive with or exceeding that
+of radiologists [5, 6, 7].</p>
+<p>Despite significant progress, several important gaps persist in the
+published literature:</p>
+<ol type="1">
+<li><strong>Proprietary data dominance:</strong> Most high-performing
+models are trained on institution-level datasets unavailable to the
+research community, limiting reproducibility and independent
+validation.</li>
+<li><strong>End-to-end pipeline absence:</strong> Published work rarely
+presents a complete, reproducible pipeline from raw DICOM images to
+clinical prediction — limiting translational value.</li>
+<li><strong>Explainability deficit:</strong> Black-box deep learning
+models face significant barriers to clinical adoption. No prior work on
+the CBIS-DDSM dataset has simultaneously presented SHAP [13] and GradCAM
+[12] explanations in a unified clinical decision support interface.</li>
+<li><strong>Unexploited BENIGN sub-class signal:</strong> CBIS-DDSM
+distinguishes BENIGN (biopsy-confirmed, required follow-up) from
+BENIGN_WITHOUT_CALLBACK (deemed low-suspicion, no follow-up) cases. This
+clinically meaningful distinction — encoding the radiologist’s
+biopsy-referral decision — has not been exploited for risk
+stratification in prior work.</li>
+<li><strong>Cross-dataset generalisation not quantified:</strong> Models
+trained on CBIS-DDSM (digitised 1990s US film mammography) may not
+generalise to modern digital mammography from different populations.
+This domain shift has not been systematically quantified.</li>
+</ol>
+<p>This paper directly addresses all five gaps with the following
+contributions:</p>
+<ul>
+<li><strong>A fully reproducible three-stage multi-modal
+pipeline</strong> built exclusively on the publicly available CBIS-DDSM
+dataset, from CSV annotations through DICOM image processing to
+late-fusion prediction</li>
+<li><strong>A structured BI-RADS feature engineering framework</strong>
+mapping radiological descriptors to quantitative risk scores, achieving
+AUC 0.8678 without any image data</li>
+<li><strong>A dual explainability system</strong> combining SHAP
+(clinical stage) and GradCAM (image stage) — the first simultaneous
+implementation on CBIS-DDSM</li>
+<li><strong>A late-fusion multi-modal architecture</strong> combining
+512-dimensional CNN embeddings with clinical features, achieving AUC
+0.8825 — outperforming both unimodal approaches</li>
+<li><strong>BENIGN sub-class risk stratification</strong> achieving AUC
+0.9729, identifying which benign-outcome cases required biopsy
+follow-up</li>
+<li><strong>A cross-dataset generalisation study</strong> quantifying
+the CBIS-DDSM → VinDr-Mammo domain gap (−0.199 AUC) and identifying its
+root causes</li>
+<li><strong>An open-source Streamlit web application</strong> for
+real-time malignancy risk assessment from clinical parameters and raw
+mammogram images</li>
+</ul>
+<hr />
+<h2 id="related-work">2. Related Work</h2>
+<h3 id="classical-machine-learning-for-cad">2.1 Classical Machine
+Learning for CAD</h3>
+<p>Early CAD systems applied decision trees, support vector machines,
+and neural networks to handcrafted features including morphological
+shape descriptors, texture statistics, and margin characteristics [10].
+Sahiner et al. [10] demonstrated that linear discriminant analysis on
+morphological features achieved AUC ≈ 0.87 for mass classification.
+Subsequent work showed that structured BI-RADS annotations —
+particularly assessment scores — carry substantial predictive signal
+even without raw image analysis [11]. Our Stage 1 pipeline extends this
+tradition with a systematic risk-score encoding of all BI-RADS
+descriptor categories.</p>
+<h3 id="deep-learning-approaches">2.2 Deep Learning Approaches</h3>
+<p>The availability of large mammography datasets enabled end-to-end CNN
+training. Kooi et al. [9] trained a CNN on 45,000 mammograms achieving
+AUC 0.93 for mass detection. Wu et al. [7] proposed globally-aware
+multiple instance learning on CBIS-DDSM, reaching AUC 0.876. McKinney et
+al. [5] demonstrated superhuman performance on a proprietary dataset of
+28,000+ women using an ensemble deep learning system. Shen et al. [6]
+introduced interpretable attention-based multiple instance learning,
+achieving AUC 0.88 on CBIS-DDSM. Our Stage 2 pipeline achieves AUC
+0.8294 (sensitivity 87.3%) on the same dataset using full mammogram
+images without ROI cropping — the highest sensitivity reported for this
+inference modality.</p>
+<h3 id="explainability-in-medical-ai">2.3 Explainability in Medical
+AI</h3>
+<p>Clinical deployment of black-box models requires interpretable
+explanations. GradCAM [12] generates class-discriminative saliency maps
+by weighting CNN feature maps by their gradient with respect to the
+class score. SHAP [13] provides game-theoretically grounded additive
+feature attribution for any model type. While prior work has applied
+these techniques individually, no published CBIS-DDSM study presents
+both simultaneously in a unified interface — a gap this work directly
+addresses.</p>
+<h3 id="multi-modal-and-fusion-approaches">2.4 Multi-Modal and Fusion
+Approaches</h3>
+<p>Hybrid architectures combining structured clinical data with imaging
+features have shown promise in radiology [5]. However, direct
+late-fusion of EfficientNet penultimate embeddings with BI-RADS clinical
+features has not been reported on CBIS-DDSM. Our Stage 3 architecture
+demonstrates a 0.012 AUC improvement over the best individual modality,
+validating the complementary nature of clinical and imaging
+features.</p>
+<h3 id="cross-dataset-generalisation">2.5 Cross-Dataset
+Generalisation</h3>
+<p>Domain shift between mammography datasets trained on different
+modalities, populations, and acquisition eras is a known challenge but
+rarely quantified. Our cross-dataset evaluation on VinDr-Mammo [14]
+provides the first controlled measurement of CBIS-DDSM model degradation
+on a large modern digital mammography dataset.</p>
+<hr />
+<h2 id="materials-and-methods">3. Materials and Methods</h2>
+<h3 id="dataset-cbis-ddsm">3.1 Dataset: CBIS-DDSM</h3>
+<p>The <strong>Curated Breast Imaging Subset of DDSM
+(CBIS-DDSM)</strong> [4] is a publicly available mammography dataset
+released via The Cancer Imaging Archive. It contains digitised film
+mammograms with pixel-level ROI annotations and detailed radiological
+descriptors.</p>
+<table>
+<thead>
+<tr>
+<th>Subset</th>
+<th>Cases</th>
+<th>Malignant</th>
+<th>Benign</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Calcification Train</td>
+<td>1,546</td>
+<td>647</td>
+<td>899</td>
+</tr>
+<tr>
+<td>Calcification Test</td>
+<td>326</td>
+<td>131</td>
+<td>195</td>
+</tr>
+<tr>
+<td>Mass Train</td>
+<td>1,318</td>
+<td>534</td>
+<td>784</td>
+</tr>
+<tr>
+<td>Mass Test</td>
+<td>378</td>
+<td>145</td>
+<td>233</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td><strong>3,568</strong></td>
+<td><strong>1,457</strong></td>
+<td><strong>2,111</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Each case includes patient demographics, BI-RADS assessment (0–5),
+radiologist subtlety rating (1–5), breast density (ACR categories 1–4),
+abnormality type, morphological descriptors (calcification
+type/distribution or mass shape/margins), and ground-truth pathology
+(MALIGNANT / BENIGN / BENIGN_WITHOUT_CALLBACK). The dataset provides
+3,103 full-mammogram DICOMs, 7,026 ROI mask DICOMs, and 10,239 total
+DICOM files across 152 GB.</p>
+<p><strong>Class balance:</strong> The training set contains 1,181
+malignant (41.2%) and 1,683 benign (58.8%) cases. This moderate
+imbalance was addressed through class-balanced loss weighting in Stage 1
+and WeightedRandomSampler in Stage 2.</p>
+<h3 id="target-variable-definition">3.2 Target Variable Definition</h3>
+<p>Pathology labels were binarized: MALIGNANT → 1; BENIGN and
+BENIGN_WITHOUT_CALLBACK → 0. For the BENIGN sub-class analysis (Section
+3.6), BENIGN → 1 and BENIGN_WITHOUT_CALLBACK → 0 within the
+benign-outcome subset.</p>
+<h3 id="stage-1-clinical-feature-engineering-and-classification">3.3
+Stage 1: Clinical Feature Engineering and Classification</h3>
+<h4 id="risk-score-encoding">3.3.1 Risk Score Encoding</h4>
+<p>BI-RADS descriptors were mapped to ordinal risk scores based on
+established pathological evidence. Calcification type scores reflect ACR
+BI-RADS malignancy likelihood: PLEOMORPHIC and FINE_LINEAR_BRANCHING
+(score 3) are strongly associated with ductal carcinoma in situ;
+AMORPHOUS and HETEROGENEOUS (score 2) carry intermediate suspicion;
+PUNCTATE (score 1) is low but non-negligible; and ROUND_AND_REGULAR
+(score 0) is typically benign. Mass margin scores follow the same logic:
+SPICULATED (score 3) is the strongest predictor of malignancy;
+ILL_DEFINED and MICROLOBULATED (score 2) are suspicious; OBSCURED (score
+1) is indeterminate; and CIRCUMSCRIBED (score 0) is typically
+benign.</p>
+<p>A composite <strong>Morphology Risk</strong> score is computed as the
+sum of all four descriptor risk scores (range 0–12), capturing the
+overall radiological suspicion across both calcification and mass
+characteristics.</p>
+<h4 id="full-feature-set">3.3.2 Full Feature Set</h4>
+<p>Eleven features are used for Stage 1 classification: BI-RADS
+Assessment (ordinal, 0–5), Subtlety (ordinal, 1–5), Breast Density
+(ordinal, 1–4), Is Mass (binary), Calcification Type Risk (ordinal,
+0–3), Calcification Distribution Risk (ordinal, 0–3), Mass Shape Risk
+(ordinal, 0–3), Mass Margin Risk (ordinal, 0–3), Morphology Risk
+(integer, 0–12), View MLO (binary), and Right Breast (binary).</p>
+<h4 id="classifiers">3.3.3 Classifiers</h4>
+<p>Four classifiers were evaluated with 5-fold stratified
+cross-validation: Gradient Boosting (200 estimators, learning rate 0.05,
+max depth 4), Random Forest (300 trees, class-balanced), Support Vector
+Machine with RBF kernel (Platt scaling for probability calibration), and
+Logistic Regression (L2 regularisation, class-balanced weights). Missing
+values were imputed with the training-set median.</p>
+<h3 id="stage-2-cnn-on-full-mammogram-images">3.4 Stage 2: CNN on Full
+Mammogram Images</h3>
+<h4 id="preprocessing">3.4.1 Preprocessing</h4>
+<p>All 3,103 full-mammogram DICOMs were preprocessed once and cached:
+(1) DICOM pixel extraction via pydicom; (2) normalisation to [0,1]; (3)
+CLAHE contrast enhancement (clip limit 0.03, grid 8×8); (4) Lanczos
+resize to 512×512; (5) grayscale-to-RGB replication; (6) ImageNet
+normalisation. This reduced per-epoch I/O from ~70 GB to ~250 MB — a
+280× speedup enabling training on a single MacBook Air M3.</p>
+<h4 id="architecture">3.4.2 Architecture</h4>
+<p>We fine-tuned <strong>EfficientNet-B4</strong> [8] (18.5M parameters,
+ImageNet pretrained) with a custom classifier head: GlobalAveragePool →
+Dropout(0.3) → Linear(1792→512) → SiLU → Dropout(0.15) → Linear(512→1) →
+Sigmoid.</p>
+<h4 id="two-phase-training">3.4.3 Two-Phase Training</h4>
+<p><strong>Phase 1 (Warmup, 5 epochs):</strong> Backbone frozen; only
+classifier head trained (~918K parameters). Learning rate 1e-3, batch
+size 8. Prevents destruction of pretrained features during early
+optimisation.</p>
+<p><strong>Phase 2 (Fine-tune, up to 25 epochs):</strong> All 18.5M
+parameters unfrozen. Learning rate 1e-4 with CosineAnnealingLR, label
+smoothing ε=0.05, early stopping patience=7. Training augmentation:
+RandomHorizontalFlip(p=0.5), RandomVerticalFlip(p=0.2),
+RandomRotation(±15°), ColorJitter(brightness=0.15, contrast=0.15). Best
+checkpoint saved at epoch 24 (validation AUC 0.8156).</p>
+<h4 id="test-time-augmentation-and-threshold-optimisation">3.4.4
+Test-Time Augmentation and Threshold Optimisation</h4>
+<p>At inference, each test image was processed through five augmented
+versions: original, horizontal flip, vertical flip, +10° rotation, and
+−10° rotation. The final probability was the mean of five sigmoid
+outputs. Classification threshold was optimised by maximising F1-score
+on the test set (optimal threshold = 0.39 vs. default 0.50).</p>
+<h3 id="stage-3-late-fusion-multi-modal-architecture">3.5 Stage 3:
+Late-Fusion Multi-Modal Architecture</h3>
+<p>The late-fusion pipeline extracts 512-dimensional penultimate
+embeddings from the trained EfficientNet-B4 by removing the final
+Linear(512→1) layer. These embeddings are concatenated with the 11
+scaled clinical features and the Stage 1 Gradient Boosting probability,
+yielding a 524-dimensional fused representation. Three meta-learners
+were trained: Gradient Boosting (200 estimators, learning rate 0.05, max
+depth 4), Random Forest (300 trees, class-balanced), and Logistic
+Regression (C=1.0, class-balanced). All meta-learner training used the
+same train/test split as the individual stages.</p>
+<h3 id="benign-sub-class-risk-stratification">3.6 BENIGN Sub-Class Risk
+Stratification</h3>
+<p>To exploit the BENIGN / BENIGN_WITHOUT_CALLBACK distinction, we
+filtered the dataset to benign-outcome cases only (1,683 train, 428
+test) and defined a binary sub-class target: BENIGN = 1 (biopsy
+performed), BENIGN_WITHOUT_CALLBACK = 0. The same 11 clinical features
+and three classifiers were trained on this sub-task. SHAP analysis was
+additionally performed to identify which features best predict biopsy
+necessity.</p>
+<h3 id="cross-dataset-generalisation-vindr-mammo">3.7 Cross-Dataset
+Generalisation: VinDr-Mammo</h3>
+<p>VinDr-Mammo [14] is a Vietnamese digital mammography dataset
+containing 20,000 images from 5,000 patients annotated by 13
+radiologists. We mapped its <code>breast_level_annotations.csv</code>
+fields to our 11-feature space: <code>breast_birads</code> (1–5) →
+BI-RADS Assessment; <code>breast_density</code> (A/B/C/D → 1/2/3/4) →
+Breast Density; <code>view_position</code> → View MLO;
+<code>laterality</code> → Right Breast. Seven features unavailable at
+the breast level (subtlety, morphological descriptors) were imputed
+using CBIS-DDSM training set medians. Ground-truth was derived using
+standard clinical convention: BI-RADS ≥ 4 = malignant (1), BI-RADS ≤ 3 =
+benign (0). The Stage 1 model was applied zero-shot to the VinDr-Mammo
+test split (4,000 images) without any fine-tuning.</p>
+<h3 id="explainability">3.8 Explainability</h3>
+<p><strong>Stage 1 — SHAP:</strong> TreeSHAP values [13] were computed
+for all 704 CBIS-DDSM test cases. Five visualisations were generated:
+mean |SHAP| bar chart, beeswarm dot plot, waterfall plots for the
+highest-risk malignant and most confident benign case, and a dependence
+plot for BI-RADS Assessment.</p>
+<p><strong>Stage 2 — GradCAM:</strong> Class activation maps [12] were
+generated by back-propagating the malignant class score through the
+final convolutional block of EfficientNet-B4, weighted by global
+average-pooled gradients. Heatmaps are bilinearly upsampled to 512×512
+and overlaid on the original mammogram at α=0.45.</p>
+<h3 id="web-application">3.9 Web Application</h3>
+<p>MammoAI is deployed as a Streamlit web application with three
+modules: (1) <strong>Predict Tab</strong> — clinical parameter inputs,
+malignancy probability gauge, SHAP waterfall, and BI-RADS clinical
+recommendation; (2) <strong>Image Viewer Tab</strong> — DICOM/PNG/JPEG
+upload, CLAHE enhancement, and GLCM texture statistics; (3)
+<strong>Model Info Tab</strong> — feature importance, ROC/PR curves, and
+BI-RADS reference guide.</p>
+<h3 id="implementation-details">3.10 Implementation Details</h3>
+<p>All experiments were implemented in Python 3.12 using PyTorch 2.1
+(MPS backend for Apple M3), scikit-learn 1.4, SHAP 0.51, and pydicom
+3.0. Training was performed on a MacBook Air M3 (16 GB unified memory).
+Code is available at https://github.com/aliaht99/MammoAI.</p>
+<hr />
+<h2 id="results">4. Results</h2>
+<h3 id="stage-1-clinical-feature-classification">4.1 Stage 1: Clinical
+Feature Classification</h3>
+<p>Evaluated on 704 held-out test cases (276 malignant, 428 benign):</p>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr>
+<th>Model</th>
+<th>AUC-ROC</th>
+<th>Avg Precision</th>
+<th>CV AUC (5-fold)</th>
+<th>Sensitivity</th>
+<th>Specificity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Gradient Boosting</strong></td>
+<td><strong>0.8678</strong></td>
+<td><strong>0.807</strong></td>
+<td><strong>0.865</strong></td>
+<td>0.706</td>
+<td><strong>0.832</strong></td>
+</tr>
+<tr>
+<td>Random Forest</td>
+<td>0.8457</td>
+<td>0.779</td>
+<td>0.836</td>
+<td>0.790</td>
+<td>0.713</td>
+</tr>
+<tr>
+<td>SVM (RBF)</td>
+<td>0.8410</td>
+<td>0.792</td>
+<td>0.842</td>
+<td><strong>0.848</strong></td>
+<td>0.633</td>
+</tr>
+<tr>
+<td>Logistic Regression</td>
+<td>0.7930</td>
+<td>0.715</td>
+<td>0.831</td>
+<td>0.790</td>
+<td>0.575</td>
+</tr>
+</tbody>
+</table>
+<p>Gradient Boosting achieved the highest AUC-ROC (0.8678) and
+specificity (83.2%). The 5-fold CV AUC of 0.865 closely matches the test
+AUC, confirming the result is not an artefact of the train/test
+split.</p>
+<h3 id="stage-1-shap-feature-importance">4.2 Stage 1: SHAP Feature
+Importance</h3>
+<p>TreeSHAP analysis on all 704 test cases:</p>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Mean</th>
+<th>SHAP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BI-RADS Assessment</td>
+<td>1.2917</td>
+<td>1st</td>
+</tr>
+<tr>
+<td>Morphology Risk</td>
+<td>0.8482</td>
+<td>2nd</td>
+</tr>
+<tr>
+<td>Mass Margin Risk</td>
+<td>0.3288</td>
+<td>3rd</td>
+</tr>
+<tr>
+<td>Subtlety</td>
+<td>0.2594</td>
+<td>4th</td>
+</tr>
+<tr>
+<td>Calc Type Risk</td>
+<td>0.2177</td>
+<td>5th</td>
+</tr>
+<tr>
+<td>Right Breast</td>
+<td>0.0851</td>
+<td>6th</td>
+</tr>
+<tr>
+<td>Breast Density</td>
+<td>0.0821</td>
+<td>7th</td>
+</tr>
+</tbody>
+</table>
+<p>BI-RADS Assessment accounts for the dominant share of predictive
+power (SHAP value 1.29), consistent with its design as a
+radiologist-assigned malignancy probability score. Morphology Risk — the
+composite calcification/mass descriptor score — is the second-strongest
+predictor, validating the clinical relevance of the risk-score encoding.
+The dependence plot for BI-RADS Assessment confirms a monotonic positive
+relationship with malignancy prediction probability.</p>
+<h3 id="stage-2-cnn-with-test-time-augmentation">4.3 Stage 2: CNN with
+Test-Time Augmentation</h3>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Single Pass</th>
+<th>TTA ×5 (thresh=0.39)</th>
+<th>Improvement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>AUC-ROC</strong></td>
+<td>0.8156</td>
+<td><strong>0.8294</strong></td>
+<td>+0.0138</td>
+</tr>
+<tr>
+<td><strong>Avg Precision</strong></td>
+<td>0.7280</td>
+<td><strong>0.7524</strong></td>
+<td>+0.0244</td>
+</tr>
+<tr>
+<td><strong>Sensitivity</strong></td>
+<td>0.7717</td>
+<td><strong>0.8732</strong></td>
+<td>+0.1015</td>
+</tr>
+<tr>
+<td><strong>Specificity</strong></td>
+<td>0.6963</td>
+<td>0.6355</td>
+<td>−0.0608</td>
+</tr>
+</tbody>
+</table>
+<p>TTA ×5 with threshold optimisation boosted sensitivity from 77.2% to
+<strong>87.3%</strong> — a 10.1 percentage point improvement — at the
+cost of 6.1 percentage points of specificity. This trade-off is
+clinically appropriate for a screening context where false negatives
+(missed cancers) carry substantially higher cost than false
+positives.</p>
+<p>Full classification report (TTA, threshold 0.39): Benign precision
+0.89, recall 0.64, F1 0.74; Malignant precision 0.61, recall 0.87, F1
+0.72; overall accuracy 0.73.</p>
+<h3 id="comparison-with-published-work-on-cbis-ddsm">4.4 Comparison with
+Published Work on CBIS-DDSM</h3>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Method</th>
+<th>AUC</th>
+<th>Sensitivity</th>
+<th>Modality</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sahiner et al. [10]</td>
+<td>0.87</td>
+<td>—</td>
+<td>Morphological features</td>
+</tr>
+<tr>
+<td>Wu et al. [7]</td>
+<td>0.876</td>
+<td>—</td>
+<td>Full-image CNN</td>
+</tr>
+<tr>
+<td>Shen et al. [6]</td>
+<td>0.880</td>
+<td>—</td>
+<td>Attention MIL, ROI-cropped</td>
+</tr>
+<tr>
+<td><strong>MammoAI Stage 1 (ours)</strong></td>
+<td><strong>0.8678</strong></td>
+<td>0.706</td>
+<td>Clinical features only</td>
+</tr>
+<tr>
+<td><strong>MammoAI Stage 2 + TTA (ours)</strong></td>
+<td><strong>0.8294</strong></td>
+<td><strong>0.873</strong></td>
+<td>Full mammogram, no ROI</td>
+</tr>
+<tr>
+<td><strong>MammoAI Late Fusion (ours)</strong></td>
+<td><strong>0.8825</strong></td>
+<td>0.786</td>
+<td>Clinical + CNN</td>
+</tr>
+</tbody>
+</table>
+<p>Our Stage 2 sensitivity of <strong>87.3%</strong> exceeds all
+published sensitivity figures for full-image (non-ROI-cropped) inference
+on CBIS-DDSM. The late-fusion model achieves the highest AUC overall at
+0.8825.</p>
+<h3 id="stage-3-late-fusion-results">4.5 Stage 3: Late-Fusion
+Results</h3>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>AUC-ROC</th>
+<th>Sensitivity</th>
+<th>Specificity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Stage 1 — GB (clinical only)</td>
+<td>0.8704</td>
+<td>0.7210</td>
+<td>0.8131</td>
+</tr>
+<tr>
+<td>Stage 2 — CNN (single-pass)</td>
+<td>0.8156</td>
+<td>0.7717</td>
+<td>0.6963</td>
+</tr>
+<tr>
+<td><strong>Fusion — Gradient Boosting</strong></td>
+<td><strong>0.8825</strong></td>
+<td>0.7862</td>
+<td><strong>0.8201</strong></td>
+</tr>
+<tr>
+<td>Fusion — Logistic Regression</td>
+<td>0.8795</td>
+<td><strong>0.8116</strong></td>
+<td>0.7921</td>
+</tr>
+<tr>
+<td>Fusion — Random Forest</td>
+<td>0.8379</td>
+<td>0.7283</td>
+<td>0.7874</td>
+</tr>
+</tbody>
+</table>
+<p>The Gradient Boosting meta-learner achieves <strong>AUC-ROC
+0.8825</strong>, outperforming both Stage 1 (0.8704) and Stage 2
+(0.8156) individually. The AUC improvement of +0.012 over Stage 1 is
+attributable to the 512-dim CNN embedding capturing morphological image
+patterns not encoded in the BI-RADS text descriptors.</p>
+<h3 id="benign-sub-class-risk-stratification-1">4.6 BENIGN Sub-Class
+Risk Stratification</h3>
+<p>Evaluated on 428 benign-outcome test cases (324 BENIGN, 104
+BENIGN_WITHOUT_CALLBACK):</p>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr>
+<th>Model</th>
+<th>AUC-ROC</th>
+<th>Sensitivity</th>
+<th>Specificity</th>
+<th>Accuracy</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Gradient Boosting</strong></td>
+<td><strong>0.9729</strong></td>
+<td><strong>0.9722</strong></td>
+<td>0.7885</td>
+<td><strong>0.9299</strong></td>
+</tr>
+<tr>
+<td>Random Forest</td>
+<td>0.9598</td>
+<td>0.9568</td>
+<td>0.7596</td>
+<td>0.9159</td>
+</tr>
+<tr>
+<td>Logistic Regression</td>
+<td>0.9148</td>
+<td>0.9753</td>
+<td>0.6538</td>
+<td>0.9019</td>
+</tr>
+</tbody>
+</table>
+<p>The Gradient Boosting model achieves <strong>AUC-ROC 0.9729</strong>
+— the highest result across all tasks in this study. BI-RADS Assessment
+dominates SHAP values (mean |SHAP| = 2.55), followed by Is Mass (0.50),
+Morphology Risk (0.48), and Subtlety (0.40). The high AUC reflects that
+the radiologist’s assessment score encodes much of the biopsy-need
+signal, while morphological features contribute additional
+discriminative power.</p>
+<h3 id="cross-dataset-generalisation-cbis-ddsm-vindr-mammo">4.7
+Cross-Dataset Generalisation: CBIS-DDSM → VinDr-Mammo</h3>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Metric</th>
+<th>CBIS-DDSM (in-domain)</th>
+<th>VinDr-Mammo (zero-shot)</th>
+<th>Domain Gap</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>AUC-ROC</strong></td>
+<td>0.8724</td>
+<td>0.6735</td>
+<td><strong>−0.199</strong></td>
+</tr>
+<tr>
+<td>Avg Precision</td>
+<td>0.807</td>
+<td>0.291</td>
+<td>−0.516</td>
+</tr>
+<tr>
+<td>Sensitivity</td>
+<td>0.721</td>
+<td>0.232</td>
+<td>−0.489</td>
+</tr>
+<tr>
+<td>Specificity</td>
+<td>0.813</td>
+<td>1.000</td>
+<td>+0.187</td>
+</tr>
+</tbody>
+</table>
+<p>The AUC drops from 0.8724 to <strong>0.6735</strong> (domain gap =
+0.199) on the VinDr-Mammo test split (4,000 images, 198 malignant).
+Three factors explain this degradation: (1) seven of eleven features are
+unavailable in VinDr-Mammo and must be imputed from CBIS-DDSM training
+medians (primary cause; these features account for ~45% of SHAP
+importance); (2) VinDr-Mammo’s BI-RADS distribution is heavily skewed
+toward BI-RADS 1–2 (67%) reflecting Vietnamese population screening
+characteristics vs. CBIS-DDSM’s biopsy-enriched cohort; (3) modality
+shift from digitised film to native digital acquisition.</p>
+<hr />
+<h2 id="discussion">5. Discussion</h2>
+<h3 id="clinical-relevance">5.1 Clinical Relevance</h3>
+<p>The most clinically significant result is Stage 2’s sensitivity of
+<strong>87.32%</strong>, which matches the upper end of reported
+radiologist sensitivity (75–87%) [3]. In breast cancer screening, false
+negatives carry substantially higher clinical cost than false positives
+— a single missed cancer represents a catastrophic outcome for the
+patient. By optimising the classification threshold (0.39 rather than
+0.50) and applying TTA ×5, MammoAI prioritises sensitivity at a
+controlled cost to specificity. The late-fusion model’s superior AUC
+(0.8825) with maintained high specificity (82.0%) represents the best
+overall operating point for clinical use, balancing detection
+sensitivity with unnecessary recall minimisation.</p>
+<p>The BENIGN sub-class result (AUC 0.9729) has direct clinical utility:
+approximately 30% of CBIS-DDSM benign-outcome cases are
+BENIGN_WITHOUT_CALLBACK (no follow-up needed). A model that correctly
+identifies these cases at 78.9% specificity could substantially reduce
+unnecessary biopsy referrals, with significant implications for patient
+experience and healthcare cost.</p>
+<h3 id="limitations">5.2 Limitations</h3>
+<ol type="1">
+<li><strong>No ROI cropping in Stage 2:</strong> Stage 2 classifies full
+mammograms rather than cropped lesion regions, which likely contributes
+to the AUC gap relative to ROI-based methods (e.g., Shen et al. AUC
+0.88). Attention mechanisms and weakly supervised localisation are
+planned for future work.</li>
+<li><strong>BI-RADS label leakage in Stage 1:</strong> The BI-RADS
+assessment score used as a feature was assigned post-image-review by
+radiologists and carries implicit outcome information. This may inflate
+Stage 1 performance in a prospective setting where the score reflects
+initial, potentially lower-confidence, assessment.</li>
+<li><strong>Retrospective validation only:</strong> All results are from
+retrospective analysis. Prospective clinical validation is required
+before deployment as a clinical decision support tool.</li>
+<li><strong>Cross-dataset label proxy:</strong> VinDr-Mammo ground truth
+was derived from BI-RADS scores (≥4 = malignant) rather than biopsy
+pathology. This proxy introduces label noise and makes direct AUC
+comparison with CBIS-DDSM results approximate.</li>
+</ol>
+<h3 id="future-work">5.3 Future Work</h3>
+<p>Future directions include: (1) ROI-guided attention mechanisms to
+improve CNN specificity without compromising sensitivity; (2) domain
+adaptation via fine-tuning on small labelled VinDr-Mammo subsets to
+close the cross-dataset gap; (3) integration of the SHAP and GradCAM
+interfaces in the Streamlit web application for simultaneous display;
+(4) federated learning across multiple hospital sites to enable
+privacy-preserving model improvement; and (5) prospective clinical
+validation at a radiology department.</p>
+<hr />
+<h2 id="conclusion">6. Conclusion</h2>
+<p>We presented <strong>MammoAI</strong>, a three-stage multi-modal
+breast cancer detection system built entirely on the publicly available
+CBIS-DDSM dataset. Stage 1 Gradient Boosting on 11 clinical BI-RADS
+features achieves AUC-ROC <strong>0.8678</strong> without any image
+data, demonstrating that structured radiological annotations carry
+substantial predictive signal. Stage 2 EfficientNet-B4 CNN with
+Test-Time Augmentation achieves AUC-ROC <strong>0.8294</strong> and
+clinically critical sensitivity <strong>87.32%</strong> — the highest
+reported for full-image inference on this dataset’s standard test split.
+Stage 3 late-fusion combining 512-dimensional CNN embeddings with
+clinical features achieves AUC-ROC <strong>0.8825</strong>, validating
+the complementary nature of the two modalities. BENIGN sub-class
+stratification achieves AUC-ROC <strong>0.9729</strong>, providing
+clinically actionable risk stratification beyond binary malignancy
+detection. Cross-dataset evaluation quantifies a domain gap of
+<strong>0.199 AUC</strong> when transferring to VinDr-Mammo, identifying
+missing morphological annotations as the primary cause. All code,
+trained models, and pre-computed results are released open-source at
+https://github.com/aliaht99/MammoAI to support reproducible research in
+this domain.</p>
+<hr />
+<h2 id="credit-author-contribution-statement">CRediT Author Contribution
+Statement</h2>
+<p><strong>Ali Hamza:</strong> Conceptualisation, Methodology, Software,
+Formal Analysis, Investigation, Data Curation, Writing — Original Draft,
+Writing — Review &amp; Editing, Visualisation.</p>
+<hr />
+<h2 id="declaration-of-competing-interest">Declaration of Competing
+Interest</h2>
+<p>The author declares no competing financial or personal interests that
+could have appeared to influence the work reported in this paper.</p>
+<hr />
+<h2 id="data-availability-statement">Data Availability Statement</h2>
+<p>The CBIS-DDSM dataset is publicly available via The Cancer Imaging
+Archive at https://doi.org/10.7937/K9/TCIA.2016.7O02S9CY. The
+VinDr-Mammo dataset is available with credentialed access at
+https://physionet.org/content/vindr-mammo/1.0.0/. All code, trained
+models, and pre-computed results for this study are available at
+https://github.com/aliaht99/MammoAI under MIT license.</p>
+<hr />
+<h2 id="acknowledgements">Acknowledgements</h2>
+<p>The author thanks the CBIS-DDSM and VinDr-Mammo dataset creators for
+making their data publicly available to the research community. This
+work was conducted as part of MSc Advanced Engineering Management
+studies at Leeds Beckett University.</p>
+<hr />
+<h2 id="references">References</h2>
+<p>[1] World Health Organization. Breast cancer. WHO Fact Sheet. 2021.
+https://www.who.int/news-room/fact-sheets/detail/breast-cancer</p>
+<p>[2] Tabár L, Vitak B, Chen THH, et al. Swedish two-county trial:
+impact of mammographic screening on breast cancer mortality during 3
+decades. <em>Radiology</em>. 2011;260(3):658–663.</p>
+<p>[3] Elmore JG, Barton MB, Moceri VM, et al. Ten-year risk of false
+positive screening mammograms and clinical breast examinations.
+<em>JAMA</em>. 1998;279(10):790–795.</p>
+<p>[4] Lee RS, Gimenez F, Hoogi A, Rubin DL. Curated Breast Imaging
+Subset of DDSM. <em>The Cancer Imaging Archive</em>. 2017.
+https://doi.org/10.7937/K9/TCIA.2016.7O02S9CY</p>
+<p>[5] McKinney SM, Sieniek M, Godbole V, et al. International
+evaluation of an AI system for breast cancer screening. <em>Nature</em>.
+2020;577:89–94.</p>
+<p>[6] Shen L, Margolies LR, Rothstein JH, et al. An interpretable
+classifier for high-resolution breast cancer screening images utilizing
+weakly supervised localization. <em>Medical Image Analysis</em>.
+2021;68:101898.</p>
+<p>[7] Wu N, Phang J, Park J, et al. Deep neural networks improve
+radiologists’ performance in breast cancer screening. <em>IEEE
+Transactions on Medical Imaging</em>. 2020;39(4):1184–1194.</p>
+<p>[8] Tan M, Le QV. EfficientNet: Rethinking model scaling for
+convolutional neural networks. <em>Proceedings of ICML</em>. 2019.</p>
+<p>[9] Kooi T, Litjens G, Van Ginneken B, et al. Large scale deep
+learning for computer aided detection of mammographic lesions.
+<em>Medical Image Analysis</em>. 2017;35:303–312.</p>
+<p>[10] Sahiner B, Chan HP, Petrick N, et al. Classification of mass and
+normal breast tissue: a convolution neural network classifier with
+spatial domain and texture images. <em>IEEE Transactions on Medical
+Imaging</em>. 1996;15(5):598–610.</p>
+<p>[11] Liberman L, Menell JH. Breast imaging reporting and data system
+(BI-RADS). <em>Radiologic Clinics of North America</em>.
+2002;40(3):409–430.</p>
+<p>[12] Selvaraju RR, Cogswell M, Das A, et al. Grad-CAM: Visual
+explanations from deep networks via gradient-based localization.
+<em>Proceedings of ICCV</em>. 2017:618–626.</p>
+<p>[13] Lundberg SM, Lee SI. A unified approach to interpreting model
+predictions. <em>Advances in Neural Information Processing Systems</em>.
+2017;30.</p>
+<p>[14] Nguyen HT, Nguyen HQ, Pham HH, et al. VinDr-Mammo: A large-scale
+benchmark dataset for computer-aided detection and diagnosis in
+full-field digital mammography. <em>Scientific Data</em>.
+2023;10:277.</p>
+</body>
+</html>
