@@ -1,0 +1,44 @@
+# ── Large medical image data (152 GB — never commit) ──────────────
+manifest-ZkhPvrLo5216730872708713142/CBIS-DDSM/
+*.dcm
+
+# ── Python ────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# ── Virtual environments ──────────────────────────────────────────
+venv/
+.venv/
+env/
+ENV/
+
+# ── Jupyter ───────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb
+
+# ── Large model weights (use Git LFS or HuggingFace Hub instead) ─
+models/cnn_*.pth
+models/cnn_*.pt
+models/*.bin
+
+# ── OS / Editor ───────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ── Streamlit cache ───────────────────────────────────────────────
+.streamlit/
+
+# ── Secrets / credentials ─────────────────────────────────────────
+.env
+secrets.toml

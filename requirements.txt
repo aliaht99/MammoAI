@@ -1,0 +1,23 @@
+# Core ML
+scikit-learn>=1.4.0
+numpy>=1.26.0
+pandas>=2.2.0
+
+# Deep learning (M3 Mac — uses MPS backend)
+torch>=2.1.0
+torchvision>=0.16.0
+
+# Medical imaging
+pydicom>=2.4.0
+scikit-image>=0.22.0
+Pillow>=10.0.0
+
+# Visualisation
+matplotlib>=3.8.0
+seaborn>=0.13.0
+
+# Web app
+streamlit>=1.32.0
+
+# Explainability
+shap>=0.44.0
