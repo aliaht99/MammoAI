@@ -33,9 +33,9 @@ DROP_RATE    = 0.3          # dropout before classifier head
 NUM_CLASSES  = 1            # binary: sigmoid output
 
 # ── Training ───────────────────────────────────────────────────────────────
-BATCH_SIZE   = 8            # safe for 16 GB M3 unified memory at 512px
-NUM_WORKERS  = 4
-EPOCHS_WARMUP= 5            # freeze backbone, train head only
+BATCH_SIZE      = 16        # faster now that PNGs are tiny
+NUM_WORKERS     = 0         # 0 = main process only — fixes macOS multiprocessing deadlock
+EPOCHS_WARMUP   = 5         # freeze backbone, train head only
 EPOCHS_FINETUNE = 25        # unfreeze all layers
 LR_WARMUP    = 1e-3
 LR_FINETUNE  = 1e-4

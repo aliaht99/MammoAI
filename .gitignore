@@ -23,6 +23,9 @@ ENV/
 .ipynb_checkpoints/
 *.ipynb
 
+# ── Preprocessed PNG cache (regenerate with preprocess.py) ───────
+stage2_cnn/png_cache/
+
 # ── Large model weights (use Git LFS or HuggingFace Hub instead) ─
 models/cnn_*.pth
 models/cnn_*.pt
