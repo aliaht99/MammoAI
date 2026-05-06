@@ -1,0 +1,2 @@
+Model,AUC-ROC,Avg Precision,Sensitivity,Specificity
+EfficientNet-B4 (Stage 2 CNN),0.8294,0.7524,0.8732,0.6355

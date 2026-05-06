@@ -1,0 +1,6 @@
+Model,AUC-ROC,Avg Precision,Sensitivity,Specificity
+Stage 1 — Gradient Boosting (clinical only),0.8704,0.8234,0.721,0.8131
+Stage 2 — EfficientNet-B4 (CNN only),0.8156,0.728,0.7717,0.6963
+Fusion — Gradient Boosting,0.8825,0.8193,0.7862,0.8201
+Fusion — Random Forest,0.8379,0.7619,0.7283,0.7874
+Fusion — Logistic Regression,0.8795,0.8126,0.8116,0.7921

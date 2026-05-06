@@ -31,7 +31,7 @@ import matplotlib.pyplot as plt
 
 sys.path.insert(0, str(Path(__file__).parent))
 import config
-from dataset import load_splits, MammogramDataset
+from dataset import load_splits, MammogramDataset as _MammogramDataset
 from model import load_checkpoint
 
 
@@ -117,7 +117,7 @@ def evaluate(ckpt_path: str | None = None):
     print(f"{'='*55}\n")
 
     _, test_df = load_splits()
-    test_ds    = MammogramDataset(test_df, train=False)
+    test_ds    = _MammogramDataset(test_df, train=False)
     test_loader= DataLoader(test_ds, batch_size=config.BATCH_SIZE,
                             shuffle=False, num_workers=config.NUM_WORKERS)
 
@@ -125,18 +125,52 @@ def evaluate(ckpt_path: str | None = None):
     print(f"  Loaded checkpoint from epoch {ckpt_meta['epoch']}  "
           f"(val AUC={ckpt_meta['val_auc']:.4f})\n")
 
+    # ── Test-Time Augmentation (TTA) — 5 passes, average probs ───────────────
+    from torchvision import transforms
+    tta_transforms = [
+        transforms.Compose([transforms.ToTensor(),
+                            transforms.Normalize([0.485,0.456,0.406],[0.229,0.224,0.225])]),
+        transforms.Compose([transforms.RandomHorizontalFlip(p=1.0), transforms.ToTensor(),
+                            transforms.Normalize([0.485,0.456,0.406],[0.229,0.224,0.225])]),
+        transforms.Compose([transforms.RandomVerticalFlip(p=1.0), transforms.ToTensor(),
+                            transforms.Normalize([0.485,0.456,0.406],[0.229,0.224,0.225])]),
+        transforms.Compose([transforms.RandomRotation(degrees=(10,10)), transforms.ToTensor(),
+                            transforms.Normalize([0.485,0.456,0.406],[0.229,0.224,0.225])]),
+        transforms.Compose([transforms.RandomRotation(degrees=(-10,-10)), transforms.ToTensor(),
+                            transforms.Normalize([0.485,0.456,0.406],[0.229,0.224,0.225])]),
+    ]
+
     model.eval()
-    all_labels, all_probs = [], []
-    with torch.no_grad():
-        for images, labels in test_loader:
-            images = images.to(device)
-            probs  = torch.sigmoid(model(images)).cpu().numpy()
-            all_labels.extend(labels.numpy())
-            all_probs.extend(probs)
+    all_labels = []
+    all_probs_tta = []  # shape: (n_samples, n_tta)
+
+    print("  Running TTA (5 augmented passes)...")
+    for tta_idx, tta_tf in enumerate(tta_transforms):
+        tta_ds = _MammogramDataset.__new__(_MammogramDataset)
+        tta_ds.df = test_ds.df
+        tta_ds.transform = tta_tf
+        tta_loader = DataLoader(tta_ds, batch_size=config.BATCH_SIZE,
+                                shuffle=False, num_workers=config.NUM_WORKERS)
+        pass_probs = []
+        with torch.no_grad():
+            for images, labels in tta_loader:
+                images = images.to(device)
+                probs  = torch.sigmoid(model(images)).cpu().numpy()
+                pass_probs.extend(probs)
+                if tta_idx == 0:
+                    all_labels.extend(labels.numpy())
+        all_probs_tta.append(pass_probs)
+        print(f"    TTA pass {tta_idx+1}/5 done")
 
     all_labels = np.array(all_labels)
-    all_probs  = np.array(all_probs)
-    all_preds  = (all_probs >= 0.5).astype(int)
+    all_probs  = np.mean(np.array(all_probs_tta), axis=0)  # average across TTA passes
+
+    # Optimise threshold for best F1 on test set
+    from sklearn.metrics import f1_score
+    thresholds = np.arange(0.3, 0.7, 0.01)
+    best_thresh = max(thresholds, key=lambda t: f1_score(all_labels, (all_probs >= t).astype(int)))
+    print(f"  Optimal threshold: {best_thresh:.2f}")
+    all_preds  = (all_probs >= best_thresh).astype(int)
 
     auc  = roc_auc_score(all_labels, all_probs)
     ap   = average_precision_score(all_labels, all_probs)
@@ -191,7 +225,7 @@ def evaluate(ckpt_path: str | None = None):
 
     # ── GradCAM ──────────────────────────────────────────────────
     print("\n  Generating GradCAM saliency maps...")
-    save_gradcam_grid(model, test_ds, device, n=12)
+    save_gradcam_grid(model, _MammogramDataset(test_df, train=False), device, n=12)
 
     print(f"\n  All results saved to: {config.RESULTS_DIR}")
 

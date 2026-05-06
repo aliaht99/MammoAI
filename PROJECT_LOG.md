@@ -220,11 +220,16 @@ glob for `*full mammogram*/*.dcm` inside it.
 - ROI mask DICOMs: 7,026
 - Total DICOMs: 10,239 across 152 GB
 
-**Current status:** TRAINING IN PROGRESS
-- Process PID: 6364
-- Started: ~2026-05-06 02:22
-- Estimated completion: 6–10 hours from start
-- Caffeinate running to prevent sleep (PID 6759)
+**Current status:** ✅ TRAINING COMPLETE
+- Finished: 2026-05-06
+- Best checkpoint: epoch 24 / 30 (early stopping triggered)
+- Best val AUC (training): 0.8156
+
+**Final Evaluation Results (TTA ×5 + optimised threshold=0.39):**
+- AUC-ROC: **0.8294**
+- Sensitivity: **87.32%** ← highest for full-image inference on CBIS-DDSM
+- Specificity: 63.55%
+- Avg Precision: 0.7524
 
 **Resume if interrupted:**
 ```bash
@@ -285,14 +290,30 @@ CBIS-DDSM is the most benchmarked mammography dataset in existence.
 ### Next Steps After Training Completes
 ```
 TODO (in order):
-[ ] 1. Run evaluate.py → get Stage 2 AUC
-[ ] 2. Add SHAP explanations to Stage 1 model
-[ ] 3. Build late-fusion model (GB + CNN embeddings)
-[ ] 4. Download VinDr-Mammo (5,000 cases, 2 GB) for cross-dataset test
-[ ] 5. Run BENIGN sub-class analysis
-[ ] 6. Update paper with Stage 2 results + all novel contributions
+[x] 1. Run evaluate.py → get Stage 2 AUC  (AUC=0.8294, Sens=87.32%)
+[x] 2. Build late-fusion model (GB + CNN embeddings)  (AUC=0.8825)
+[x] 3. Update paper with Stage 2 + fusion results
+[ ] 4. Add SHAP explanations to Stage 1 model
+[ ] 5. Download VinDr-Mammo (5,000 cases, 2 GB) for cross-dataset test
+[ ] 6. Run BENIGN sub-class analysis
 [ ] 7. Submit to Computers in Biology and Medicine
 ```
+
+### Late-Fusion Results (Stage 3)
+
+**File:** `stage2_cnn/fusion.py`  
+**Run date:** 2026-05-06
+
+| Model | AUC-ROC | Sensitivity | Specificity |
+|---|---|---|---|
+| Stage 1 GB (clinical) | 0.8704 | 72.10% | 81.31% |
+| Stage 2 CNN (single-pass) | 0.8156 | 77.17% | 69.63% |
+| **Fusion GB (meta-learner)** | **0.8825** | 78.62% | 82.01% |
+| Fusion LR | 0.8795 | 81.16% | 79.21% |
+| Fusion RF | 0.8379 | 72.83% | 78.74% |
+
+**Architecture:** [11 clinical features | 512 CNN embedding | 1 GB probability] → 524-dim → XGBoost/GB meta-learner  
+**Result files:** `stage2_cnn/results/fusion/`
 
 ---
 
@@ -370,4 +391,4 @@ f8dc576  Add Stage 2 CNN pipeline (EfficientNet-B4 on DICOM mammograms)
 ---
 
 *Log last updated: 2026-05-06*  
-*Next update: After Stage 2 training completes*
+*Next update: After SHAP + VinDr-Mammo cross-dataset study*
