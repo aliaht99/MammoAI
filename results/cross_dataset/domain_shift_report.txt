@@ -1,0 +1,30 @@
+MammoAI Cross-Dataset Generalisation Report
+============================================================
+Source domain : CBIS-DDSM (digitised film, USA, 1990s)
+Target domain : VinDr-Mammo (digital mammography, Vietnam, 2022)
+Model         : Gradient Boosting on 11 clinical features
+
+RESULTS
+-------
+CBIS-DDSM in-domain AUC  : 0.8724
+VinDr-Mammo zero-shot AUC: 0.6735
+Domain gap (AUC drop)    : +0.1989
+
+VinDr-Mammo metrics:
+  AUC-ROC         : 0.6735
+  Avg Precision   : 0.2913
+  Sensitivity     : 0.2323
+  Specificity     : 1.0000
+
+FEATURE MAPPING
+---------------
+Available in VinDr-Mammo : BI-RADS Assessment, Breast Density, View MLO, Right Breast
+Imputed from CBIS medians: Subtlety, Is Mass, Calc Type Risk, Calc Dist Risk, Mass Shape Risk, Mass Margin Risk, Morphology Risk
+
+NOTES
+-----
+VinDr-Mammo uses breast_birads (1-5) as primary BI-RADS score.
+Ground truth derived from BI-RADS convention (4/5 = malignant).
+Morphological descriptors (calc type, mass margin, etc.) not
+available at breast level in VinDr-Mammo — imputed from CBIS-DDSM
+training set medians, which likely explains part of the domain gap.

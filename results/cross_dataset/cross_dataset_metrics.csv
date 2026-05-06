@@ -1,0 +1,3 @@
+Dataset,AUC-ROC,Sensitivity,Specificity,Domain
+CBIS-DDSM (in-domain test),0.8724,0.7210,0.8131,Source
+VinDr-Mammo (zero-shot),0.6735,0.2323,1.0,Target

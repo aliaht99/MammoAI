@@ -166,14 +166,19 @@ def load_vindr(vindr_dir: Path) -> tuple[np.ndarray, np.ndarray, dict]:
         print(f"  Test split: {len(df)} images")
 
     # Binary label: BIRADS 4/5 = malignant
-    birads = pd.to_numeric(df["breast_birads"], errors="coerce").fillna(1)
+    # VinDr stores as "BI-RADS 2" string — extract number
+    birads_raw = df["breast_birads"].astype(str).str.extract(r'(\d+)')[0]
+    birads = pd.to_numeric(birads_raw, errors="coerce").fillna(1)
     y = (birads >= 4).astype(int)
+
+    # breast_density stored as "DENSITY C" — extract letter
+    density_letter = df["breast_density"].astype(str).str.extract(r'DENSITY\s+([A-D])')[0]
 
     # Map to our 11-feature space
     feats = pd.DataFrame()
-    feats["assessment"]      = birads                          # direct: BIRADS 1-5
-    feats["subtlety"]        = np.nan                         # NOT available → imputed
-    feats["breast_density"]  = df["breast_density"].map(DENSITY_MAP).fillna(np.nan)
+    feats["assessment"]      = birads                               # BIRADS 1-5 (extracted)
+    feats["subtlety"]        = np.nan                              # NOT available → imputed
+    feats["breast_density"]  = density_letter.map(DENSITY_MAP).fillna(np.nan)
     # Is mass: check finding_categories if available (only in finding_annotations.csv)
     feats["is_mass"]         = np.nan                         # NOT available at breast level
     feats["calc_type_risk"]  = np.nan                         # NOT available
@@ -257,8 +262,8 @@ def main(vindr_dir: str | None = None):
     ap_vindr    = average_precision_score(y_vindr, probs_vindr)
     preds_vindr = (probs_vindr >= 0.5).astype(int)
     rep_vindr   = classification_report(y_vindr, preds_vindr, output_dict=True, zero_division=0)
-    sens_vindr  = rep_vindr["1"]["recall"]
-    spec_vindr  = rep_vindr["0"]["recall"]
+    sens_vindr  = rep_vindr.get("1", {}).get("recall", float("nan"))
+    spec_vindr  = rep_vindr.get("0", {}).get("recall", float("nan"))
 
     domain_gap = auc_cbis - auc_vindr
     print(f"  VinDr-Mammo Zero-Shot AUC = {auc_vindr:.4f}")
@@ -282,11 +287,15 @@ def main(vindr_dir: str | None = None):
     fig, ax = plt.subplots(figsize=(7, 6))
     fpr_c, tpr_c, _ = roc_curve(y_test, gb.predict_proba(X_test_s)[:, 1])
     fpr_v, tpr_v, _ = roc_curve(y_vindr, probs_vindr)
+    # interpolate both to common x-axis for fill_between
+    common_fpr = np.linspace(0, 1, 300)
+    tpr_c_interp = np.interp(common_fpr, fpr_c, tpr_c)
+    tpr_v_interp = np.interp(common_fpr, fpr_v, tpr_v)
     ax.plot(fpr_c, tpr_c, color="#0f3460", lw=2.5,
             label=f"CBIS-DDSM (in-domain)  AUC={auc_cbis:.3f}")
     ax.plot(fpr_v, tpr_v, color="#e94560", lw=2.5,
             label=f"VinDr-Mammo (zero-shot) AUC={auc_vindr:.3f}")
-    ax.fill_between(fpr_c, tpr_c, tpr_v, alpha=0.15, color="grey",
+    ax.fill_between(common_fpr, tpr_c_interp, tpr_v_interp, alpha=0.15, color="grey",
                     label=f"Domain gap = {domain_gap:+.3f} AUC")
     ax.plot([0, 1], [0, 1], "k--", lw=1)
     ax.set(xlabel="False Positive Rate", ylabel="True Positive Rate",

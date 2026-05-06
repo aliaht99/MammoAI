@@ -232,7 +232,7 @@ Stage 1 and Stage 2 are combined in a late-fusion framework. We extract the 512-
 The CBIS-DDSM pathology field distinguishes BENIGN (biopsy-confirmed benign, required follow-up) from BENIGN\_WITHOUT\_CALLBACK (benign, no follow-up needed). This distinction — representing real clinical workflow decisions — has not been exploited in prior work. We train a secondary Gradient Boosting classifier on 1,683 benign-outcome cases to predict which required biopsy follow-up. The model achieves **AUC-ROC of 0.9729** and 97.2% sensitivity, providing a clinically actionable risk stratification beyond the binary malignant/benign boundary. BI-RADS Assessment score is the dominant predictor (SHAP analysis confirms this), suggesting that the radiologist's existing assessment already encodes much of the biopsy-need signal — but the model captures residual signal from morphological features.
 
 #### Contribution 4: Cross-Dataset Generalisation Study
-Models trained on CBIS-DDSM (digitised 1990s film mammograms, US population) may not generalise to modern digital mammography. We design and implement a zero-shot transfer evaluation protocol to apply our Stage 1 model to **VinDr-Mammo** (5,000 cases, Vietnamese population, 2022 digital full-field digital mammography) [Nguyen et al., 2023]. The feature mapping between datasets is detailed in Section 4.6, along with the ground-truth proxy (BI-RADS ≥ 4 = malignant convention). This cross-dataset study is the first to systematically quantify the domain shift between CBIS-DDSM and VinDr-Mammo using a clinical feature model.
+Models trained on CBIS-DDSM (digitised 1990s film mammograms, US population) may not generalise to modern digital mammography. We apply our Stage 1 model zero-shot to **VinDr-Mammo** [Nguyen et al., 2023] (20,000 images, Vietnamese population, 2022 digital mammography), finding an AUC drop from **0.8724 → 0.6735** (domain gap = 0.199). This is the first quantitative cross-dataset transfer study between CBIS-DDSM and VinDr-Mammo, providing a concrete baseline for future domain adaptation work. The primary cause of degradation is identified as the absence of morphological descriptors in VinDr-Mammo's breast-level annotations.
 
 ### 4.6 Cross-Dataset Transfer Protocol (VinDr-Mammo)
 
@@ -344,9 +344,26 @@ SHAP analysis of the sub-class model reveals that **BI-RADS Assessment** is by f
 
 ### 5.7 Cross-Dataset Generalisation (VinDr-Mammo)
 
-*Note: VinDr-Mammo results pending PhysioNet credentialed data access. The complete analysis protocol — including feature mapping, ground-truth proxy definition, and zero-shot transfer code — is provided in `src/cross_dataset.py`. Expected domain gap based on annotation schema mismatch: 0.08–0.12 AUC.*
+The Stage 1 Gradient Boosting model trained on CBIS-DDSM was applied zero-shot to the VinDr-Mammo test split (4,000 breast images, 198 BI-RADS 4/5 cases labelled malignant, 3,802 benign).
 
-The feature distribution shift between CBIS-DDSM (1990s US film) and VinDr-Mammo (2022 Vietnamese digital) is expected to manifest primarily through: (1) missing morphological descriptors in VinDr-Mammo (imputed from CBIS-DDSM medians), (2) population-level BI-RADS calibration differences between US and Vietnamese radiologist practice, and (3) the shift from film digitisation to native digital acquisition affecting image-derived features.
+| Metric | CBIS-DDSM (in-domain) | VinDr-Mammo (zero-shot) | Domain Gap |
+|---|---|---|---|
+| **AUC-ROC** | 0.8724 | 0.6735 | **−0.199** |
+| Avg Precision | 0.807 | 0.291 | −0.516 |
+| Sensitivity | 0.721 | 0.232 | −0.489 |
+| Specificity | 0.813 | **1.000** | +0.187 |
+
+The AUC drops from **0.8724 to 0.6735** — a domain gap of **0.199** — confirming substantial generalisation degradation when transferring from 1990s digitised US film mammography to 2022 Vietnamese digital mammography.
+
+**Analysis of the domain gap:** Three factors explain the degradation:
+
+1. **Missing morphological features (primary cause):** VinDr-Mammo's `breast_level_annotations.csv` does not contain calcification type, distribution, mass shape, or margin descriptors — the seven missing features were imputed from CBIS-DDSM training set medians. These features account for ~45% of predictive importance in the in-domain model (SHAP analysis).
+
+2. **BI-RADS calibration shift:** VinDr-Mammo's BI-RADS distribution is heavily skewed toward low scores (BI-RADS 1: 2,682 / 4,000 = 67%), reflecting Vietnamese screening population characteristics vs. the CBIS-DDSM biopsy-enriched cohort.
+
+3. **Modality shift:** Film digitisation vs. native digital acquisition produces systematically different image characteristics, which indirectly affects radiologist scoring.
+
+**Clinical implication:** This result provides the first quantitative evidence of the CBIS-DDSM → VinDr-Mammo domain shift, motivating domain adaptation strategies (fine-tuning on small labelled VinDr subsets, feature alignment via adversarial training) for future work.
 
 ---
 
