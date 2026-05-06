@@ -1,0 +1,41 @@
+MammoAI Cross-Dataset Protocol — VinDr-Mammo
+============================================================
+STATUS: Awaiting data access (PhysioNet credentialed registration required)
+
+DATA ACQUISITION
+----------------
+1. Register at physionet.org (free academic account)
+2. Sign Credentialed Health Data License 1.5.0
+3. Download ONLY CSV annotations (~2 MB, no DICOMs needed for Stage 1):
+   wget -r -N -c -np --accept "*.csv" \
+     --user YOUR_USERNAME --ask-password \
+     https://physionet.org/files/vindr-mammo/1.0.0/
+
+4. Run:
+   python src/cross_dataset.py --vindr /path/to/vindr-mammo/1.0.0
+
+FEATURE MAPPING (VinDr-Mammo → CBIS-DDSM feature space)
+---------------------------------------------------------
+breast_birads (1-5)       → BI-RADS Assessment    [DIRECT]
+breast_density (A/B/C/D)  → Breast Density (1-4)  [DIRECT]
+view_position (CC/MLO)    → View MLO               [DIRECT]
+laterality (L/R)          → Right Breast           [DIRECT]
+(not available)           → Subtlety               [IMPUTED from CBIS median]
+(not available)           → Is Mass                [IMPUTED from CBIS median]
+(not available)           → Calc Type/Dist Risk    [IMPUTED from CBIS median]
+(not available)           → Mass Shape/Margin Risk [IMPUTED from CBIS median]
+(not available)           → Morphology Risk        [IMPUTED from CBIS median]
+
+GROUND TRUTH PROXY
+------------------
+VinDr-Mammo has no biopsy-confirmed pathology labels.
+BI-RADS proxy used: breast_birads >= 4 → Malignant (1)
+                    breast_birads <= 3 → Benign (0)
+This matches standard clinical practice for biopsy referral.
+
+EXPECTED ANALYSIS
+-----------------
+Zero-shot AUC on VinDr-Mammo test split (expected ~0.72-0.78)
+Domain gap = CBIS AUC - VinDr AUC (expected 0.08-0.12)
+Analysis of which features show largest distribution shift
+Recommendations for domain adaptation strategies
