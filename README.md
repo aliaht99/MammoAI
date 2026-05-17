@@ -17,6 +17,8 @@
 | **Stage 1** | Gradient Boosting — 11 clinical features | **0.8678** | 72.1% | **83.2%** |
 | **Stage 2** | EfficientNet-B4 + TTA ×5 | **0.8294** | **87.3%** | 63.6% |
 | **Stage 3** | Late-Fusion (512-dim CNN + clinical) | **0.8825** | 78.6% | 82.0% |
+| **Stage 1+** | Multi-Dataset GB (CBIS-DDSM + VinDr-Mammo, 18,864 cases) | **0.9925** | — | — |
+| **Stage 5** | Calibrated Ensemble (ECE = 0.052, Brier = 0.146) | **0.8722** | — | — |
 | **Sub-class** | BENIGN risk stratification | **0.9729** | 97.2% | 78.9% |
 
 ---
@@ -55,7 +57,9 @@ MammoAI/
 │   ├── save_model.py             Train & serialize GB model
 │   ├── shap_analysis.py          SHAP explainability (Contribution 1)
 │   ├── benign_subclass.py        BENIGN sub-class analysis (Contribution 3)
-│   └── cross_dataset.py          VinDr-Mammo cross-dataset study (Contribution 4)
+│   ├── cross_dataset.py          VinDr-Mammo cross-dataset study (Contribution 4)
+│   ├── train_multi_dataset.py    Stage 1+ multi-dataset training (CBIS + VinDr)
+│   └── calibration_ensemble.py   Stage 5 calibrated ensemble with uncertainty
 │
 ├── stage2_cnn/
 │   ├── config.py                 All hyperparameters
@@ -67,7 +71,11 @@ MammoAI/
 │   └── fusion.py                 Late-fusion pipeline (Contribution 2)
 │
 ├── models/
-│   └── gb_model.pkl              Trained Stage 1 model
+│   ├── gb_model.pkl              Stage 1 Gradient Boosting (CBIS-DDSM)
+│   ├── gb_multi_dataset.pkl      Stage 1+ GB (CBIS-DDSM + VinDr-Mammo, AUC 0.9925)
+│   ├── gb_benign_subclass.pkl    BENIGN sub-class stratifier (AUC 0.9729)
+│   ├── mammo_ensemble.pkl        Stage 5 calibrated ensemble (ECE 0.052)
+│   └── ensemble_metrics.json     Calibration + disagreement metrics
 │
 ├── results/
 │   ├── shap/                     SHAP plots (5 figures)
@@ -76,7 +84,12 @@ MammoAI/
 │   └── stage2_cnn/results/       CNN evaluation + GradCAM + fusion plots
 │
 ├── paper/
-│   └── mammoai_paper.md          Full research paper (14 references)
+│   ├── mammoai_paper.md          Full research paper (14 references)
+│   ├── mammoai_submission.md     Submission-formatted manuscript
+│   ├── MammoAI_Manuscript.docx   Word export for journal submission
+│   ├── Cover_Letter.docx         Journal cover letter
+│   ├── Conflict_of_Interest.docx CoI statement
+│   └── figures/                  Publication-ready plots (PNG)
 │
 └── data/csv/                     CBIS-DDSM CSV annotations (lightweight)
     NOTE: Raw DICOM images (~152 GB) are NOT committed — download from TCIA
@@ -90,6 +103,7 @@ MammoAI/
 # 1. Clone
 git clone https://github.com/aliaht99/MammoAI.git
 cd MammoAI
+
 
 # 2. Install dependencies
 pip install -r requirements.txt

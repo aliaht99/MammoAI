@@ -1,0 +1,26 @@
+{
+  "models": [
+    "GB (CBIS)",
+    "GB (Multi-Dataset)"
+  ],
+  "ensemble_auc": 0.8722445144250305,
+  "ensemble_ece": 0.051579668457328975,
+  "ensemble_brier": 0.14632611352694047,
+  "model_aucs": {
+    "GB (CBIS)": 0.8743777935798456,
+    "GB (Multi-Dataset)": 0.8722445144250305,
+    "Ensemble": 0.8722445144250305
+  },
+  "model_eces": {
+    "GB (CBIS)": 0.06598170491140552,
+    "GB (Multi-Dataset)": 0.051579668457329045,
+    "Ensemble": 0.051579668457328975
+  },
+  "weights": {
+    "GB (CBIS)": 2.7755575615628914e-16,
+    "GB (Multi-Dataset)": 0.9999999999999997
+  },
+  "disagreement_rate": 0.002840909090909091,
+  "error_when_agree": 0.2159090909090909,
+  "error_when_disagree": 0.002840909090909091
+}

@@ -293,10 +293,12 @@ TODO (in order):
 [x] 1. Run evaluate.py → get Stage 2 AUC  (AUC=0.8294, Sens=87.32%)
 [x] 2. Build late-fusion model (GB + CNN embeddings)  (AUC=0.8825)
 [x] 3. Update paper with Stage 2 + fusion results
-[ ] 4. Add SHAP explanations to Stage 1 model
-[ ] 5. Download VinDr-Mammo (5,000 cases, 2 GB) for cross-dataset test
-[ ] 6. Run BENIGN sub-class analysis
-[ ] 7. Submit to Computers in Biology and Medicine
+[x] 4. Add SHAP explanations to Stage 1 model  (src/shap_analysis.py — 5 plots in results/shap/)
+[x] 5. VinDr-Mammo cross-dataset study  (AUC drop 0.8724→0.6735, domain gap=0.199)
+[x] 6. Run BENIGN sub-class analysis  (AUC=0.9729, models/gb_benign_subclass.pkl)
+[x] 7. Multi-dataset training (CBIS + VinDr, 18,864 cases)  (AUC=0.9925)
+[x] 8. Calibrated ensemble with ECE  (ECE=0.052, models/mammo_ensemble.pkl)
+[ ] 9. Submit to Computers in Biology and Medicine
 ```
 
 ### Late-Fusion Results (Stage 3)
@@ -390,5 +392,5 @@ f8dc576  Add Stage 2 CNN pipeline (EfficientNet-B4 on DICOM mammograms)
 
 ---
 
-*Log last updated: 2026-05-06*  
-*Next update: After SHAP + VinDr-Mammo cross-dataset study*
+*Log last updated: 2026-05-17*  
+*Next update: After journal submission*

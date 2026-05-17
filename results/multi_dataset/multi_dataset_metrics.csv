@@ -1,0 +1,4 @@
+Model,AUC-ROC,CV-AUC,Sensitivity,Specificity,Avg Precision
+Gradient Boosting,0.9925,0.9674,0.8544,0.9799,0.9408
+Random Forest,0.9907,0.9711,0.9051,0.96,0.9243
+Logistic Regression,0.9617,0.9585,0.9662,0.94,0.7274

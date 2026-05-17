@@ -30,6 +30,9 @@ stage2_cnn/png_cache/
 models/cnn_*.pth
 models/cnn_*.pt
 models/*.bin
+stage2_cnn/checkpoints/
+stage2_cnn/logs/
+vindr-mammo/
 
 # ── OS / Editor ───────────────────────────────────────────────────
 .DS_Store
