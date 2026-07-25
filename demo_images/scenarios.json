@@ -1,0 +1,121 @@
+[
+  {
+    "id": 1,
+    "file": "1_CLEAR_MALIGNANT_spiculated_mass.png",
+    "patient": "P_00016",
+    "pathology": "MALIGNANT",
+    "form": {
+      "Abnormality Type": "Mass",
+      "BI-RADS Assessment": "5",
+      "Subtlety": "5",
+      "Breast Density": "3",
+      "Mass Shape": "IRREGULAR",
+      "Mass Margins": "SPICULATED",
+      "View": "CC",
+      "Breast Side": "LEFT"
+    },
+    "expected": "\ud83d\udd34 MALIGNANT >80% \u2014 Biopsy strongly recommended"
+  },
+  {
+    "id": 2,
+    "file": "2_MALIGNANT_irregular_illdef.png",
+    "patient": "P_00066",
+    "pathology": "MALIGNANT",
+    "form": {
+      "Abnormality Type": "Mass",
+      "BI-RADS Assessment": "4",
+      "Subtlety": "4",
+      "Breast Density": "2",
+      "Mass Shape": "IRREGULAR",
+      "Mass Margins": "ILL_DEFINED",
+      "View": "MLO",
+      "Breast Side": "RIGHT"
+    },
+    "expected": "\ud83d\udd34 MALIGNANT 60\u201375% \u2014 Biopsy advised"
+  },
+  {
+    "id": 3,
+    "file": "3_MALIGNANT_calc_pleomorphic.png",
+    "patient": "P_00127",
+    "pathology": "MALIGNANT",
+    "form": {
+      "Abnormality Type": "Calcification",
+      "BI-RADS Assessment": "4",
+      "Subtlety": "3",
+      "Breast Density": "2",
+      "Calc Type": "PLEOMORPHIC",
+      "Calc Distribution": "CLUSTERED",
+      "View": "MLO",
+      "Breast Side": "RIGHT"
+    },
+    "expected": "\ud83d\udd34 MALIGNANT 55\u201370% \u2014 Malignant calcifications"
+  },
+  {
+    "id": 4,
+    "file": "4_PROBABLY_BENIGN_lobulated.png",
+    "patient": "P_00056",
+    "pathology": "BENIGN",
+    "form": {
+      "Abnormality Type": "Mass",
+      "BI-RADS Assessment": "3",
+      "Subtlety": "2",
+      "Breast Density": "2",
+      "Mass Shape": "LOBULATED",
+      "Mass Margins": "CIRCUMSCRIBED",
+      "View": "CC",
+      "Breast Side": "RIGHT"
+    },
+    "expected": "\ud83d\udd35 PROBABLY BENIGN 25\u201345% \u2014 6-month follow-up"
+  },
+  {
+    "id": 5,
+    "file": "5_CLEAR_BENIGN_circumscribed.png",
+    "patient": "P_00158",
+    "pathology": "BENIGN_WITHOUT_CALLBACK",
+    "form": {
+      "Abnormality Type": "Mass",
+      "BI-RADS Assessment": "2",
+      "Subtlety": "1",
+      "Breast Density": "1",
+      "Mass Shape": "ROUND",
+      "Mass Margins": "CIRCUMSCRIBED",
+      "View": "CC",
+      "Breast Side": "LEFT"
+    },
+    "expected": "\ud83d\udfe2 BENIGN <15% \u2014 Routine annual screening"
+  },
+  {
+    "id": 6,
+    "file": "6_BENIGN_biopsy_was_needed.png",
+    "patient": "P_00099",
+    "pathology": "BENIGN",
+    "form": {
+      "Abnormality Type": "Mass",
+      "BI-RADS Assessment": "4",
+      "Subtlety": "3",
+      "Breast Density": "3",
+      "Mass Shape": "IRREGULAR",
+      "Mass Margins": "MICROLOBULATED",
+      "View": "MLO",
+      "Breast Side": "RIGHT"
+    },
+    "expected": "\u26a0\ufe0f BENIGN confirmed \u2014 Sub-class: Biopsy WAS needed (>50%)"
+  },
+  {
+    "id": 7,
+    "file": "7_BENIGN_no_callback.png",
+    "patient": "P_00038",
+    "pathology": "BENIGN_WITHOUT_CALLBACK",
+    "form": {
+      "Abnormality Type": "Calcification",
+      "BI-RADS Assessment": "2",
+      "Subtlety": "1",
+      "Breast Density": "2",
+      "Calc Type": "PUNCTATE",
+      "Calc Distribution": "DIFFUSELY_SCATTERED",
+      "View": "CC",
+      "Breast Side": "LEFT"
+    },
+    "expected": "\ud83d\udfe2 BENIGN <10% \u2014 Sub-class: NO biopsy needed"
+  }
+]

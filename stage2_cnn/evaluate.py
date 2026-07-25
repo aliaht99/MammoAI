@@ -60,7 +60,7 @@ class GradCAM:
         weights = self.gradients.mean(dim=(2, 3), keepdim=True)
         cam     = (weights * self.activations).sum(dim=1, keepdim=True)
         cam     = torch.relu(cam).squeeze().cpu().numpy()
-        cam     = (cam - cam.min()) / (cam.ptp() + 1e-8)
+        cam     = (cam - cam.min()) / (np.ptp(cam) + 1e-8)
         return cam
 
 
@@ -90,7 +90,7 @@ def save_gradcam_grid(model, dataset, device, n: int = 12):
 
         # display
         img_np = image.permute(1, 2, 0).numpy()
-        img_np = (img_np - img_np.min()) / (img_np.ptp() + 1e-8)
+        img_np = (img_np - img_np.min()) / (np.ptp(img_np) + 1e-8)
         axes[ax_idx].imshow(img_np, cmap="gray")
         axes[ax_idx].imshow(cam_r, alpha=0.45, cmap="jet")
         lbl_str = "Malignant" if label.item() == 1 else "Benign"

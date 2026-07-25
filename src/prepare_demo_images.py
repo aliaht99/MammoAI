@@ -71,7 +71,7 @@ def dcm_to_png(dcm_relative_path: str, output_path: Path,
     try:
         ds  = pydicom.dcmread(str(full))
         arr = ds.pixel_array.astype(float)
-        arr = ((arr - arr.min()) / (arr.ptp() + 1e-8) * 255).astype(np.uint8)
+        arr = ((arr - arr.min()) / (np.ptp(arr) + 1e-8) * 255).astype(np.uint8)
         pil = Image.fromarray(arr).convert("L")
         pil = pil.resize((size, size), Image.LANCZOS)
         # CLAHE-like: enhance contrast

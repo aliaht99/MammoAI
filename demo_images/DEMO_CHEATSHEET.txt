@@ -1,0 +1,152 @@
+======================================================================
+  MAMMODCOTOR — DEMO CHEAT SHEET
+  7 test cases covering every prediction type
+======================================================================
+
+──────────────────────────────────────────────────────────────────────
+📁 IMAGE FILE:  demo_images/1_CLEAR_MALIGNANT_mass_spiculated.png
+🏷️  SCENARIO:   SCENARIO 1 — Clear Malignant (Mass, Spiculated)
+
+  CLINICAL FORM VALUES (Tab: Clinical Form → Run Full Analysis):
+    Abnormality Type          → Mass
+    BI-RADS Assessment        → 5 — Highly Suggestive
+    Subtlety                  → 5 (obvious)
+    Breast Side               → LEFT
+    View                      → CC
+    Breast Density            → 3 — Heterogeneous
+    Mass Shape                → IRREGULAR
+    Mass Margins              → SPICULATED
+
+  EXPECTED RESULT:
+    🔴 MALIGNANT — Very High Risk (>80%). Biopsy strongly recommended.
+    Ensemble BI-RADS: BI-RADS 5 — Highly Suggestive of Malignancy
+
+──────────────────────────────────────────────────────────────────────
+📁 IMAGE FILE:  demo_images/2_MALIGNANT_calc_pleomorphic.png
+🏷️  SCENARIO:   SCENARIO 2 — Malignant Calcifications (Pleomorphic)
+
+  CLINICAL FORM VALUES (Tab: Clinical Form → Run Full Analysis):
+    Abnormality Type          → Calcification
+    BI-RADS Assessment        → 5 — Highly Suggestive
+    Subtlety                  → 4
+    Breast Side               → RIGHT
+    View                      → MLO
+    Breast Density            → 2 — Scattered
+    Calc Type                 → PLEOMORPHIC
+    Calc Distribution         → CLUSTERED
+
+  EXPECTED RESULT:
+    🔴 MALIGNANT — High Risk (60–80%).
+    Ensemble BI-RADS: BI-RADS 4C/5 — High Suspicion
+
+──────────────────────────────────────────────────────────────────────
+📁 IMAGE FILE:  demo_images/3_SUSPICIOUS_mass_illdef.png
+🏷️  SCENARIO:   SCENARIO 3 — Suspicious (BI-RADS 4, Ill-defined margins)
+
+  CLINICAL FORM VALUES (Tab: Clinical Form → Run Full Analysis):
+    Abnormality Type          → Mass
+    BI-RADS Assessment        → 4 — Suspicious
+    Subtlety                  → 3
+    Breast Side               → LEFT
+    View                      → MLO
+    Breast Density            → 3 — Heterogeneous
+    Mass Shape                → IRREGULAR
+    Mass Margins              → ILL_DEFINED
+
+  EXPECTED RESULT:
+    🟡 SUSPICIOUS — Medium-High Risk (50–70%). Biopsy/follow-up advised.
+    Ensemble BI-RADS: BI-RADS 4B/4C — Moderate-High Suspicion
+
+──────────────────────────────────────────────────────────────────────
+📁 IMAGE FILE:  demo_images/4_PROBABLY_BENIGN_mass_lobulated.png
+🏷️  SCENARIO:   SCENARIO 4 — Probably Benign (BI-RADS 3, Lobulated)
+
+  CLINICAL FORM VALUES (Tab: Clinical Form → Run Full Analysis):
+    Abnormality Type          → Mass
+    BI-RADS Assessment        → 3 — Probably Benign
+    Subtlety                  → 2
+    Breast Side               → RIGHT
+    View                      → CC
+    Breast Density            → 2 — Scattered
+    Mass Shape                → LOBULATED
+    Mass Margins              → CIRCUMSCRIBED
+
+  EXPECTED RESULT:
+    🔵 PROBABLY BENIGN — Medium Risk (25–45%). 6-month follow-up.
+    Ensemble BI-RADS: BI-RADS 3/4A — Probably Benign
+
+──────────────────────────────────────────────────────────────────────
+📁 IMAGE FILE:  demo_images/5_CLEAR_BENIGN_mass_circumscribed.png
+🏷️  SCENARIO:   SCENARIO 5 — Clear Benign (Circumscribed, BI-RADS 2)
+
+  CLINICAL FORM VALUES (Tab: Clinical Form → Run Full Analysis):
+    Abnormality Type          → Mass
+    BI-RADS Assessment        → 2 — Benign
+    Subtlety                  → 1 (barely visible)
+    Breast Side               → LEFT
+    View                      → CC
+    Breast Density            → 1 — Almost entirely fat
+    Mass Shape                → ROUND
+    Mass Margins              → CIRCUMSCRIBED
+
+  EXPECTED RESULT:
+    🟢 BENIGN — Low Risk (<15%). Routine screening.
+    Ensemble BI-RADS: BI-RADS 1/2 — Benign / Negative
+
+──────────────────────────────────────────────────────────────────────
+📁 IMAGE FILE:  demo_images/6_BENIGN_biopsy_needed.png
+🏷️  SCENARIO:   SCENARIO 6 — Benign but Biopsy Was Required (Sub-class demo)
+
+  CLINICAL FORM VALUES (Tab: Clinical Form → Run Full Analysis):
+    Abnormality Type          → Mass
+    BI-RADS Assessment        → 4 — Suspicious
+    Subtlety                  → 3
+    Breast Side               → RIGHT
+    View                      → MLO
+    Breast Density            → 3 — Heterogeneous
+    Mass Shape                → IRREGULAR
+    Mass Margins              → MICROLOBULATED
+
+  EXPECTED RESULT:
+    ⚠️ BENIGN (pathology confirmed) but biopsy WAS needed.
+Sub-class model: Biopsy Likely (>50%). Shows BENIGN sub-class working.
+    Ensemble BI-RADS: BI-RADS 4A/4B — Biopsy required
+
+──────────────────────────────────────────────────────────────────────
+📁 IMAGE FILE:  demo_images/7_BENIGN_NO_CALLBACK.png
+🏷️  SCENARIO:   SCENARIO 7 — Benign, No Recall Needed (BENIGN_WITHOUT_CALLBACK)
+
+  CLINICAL FORM VALUES (Tab: Clinical Form → Run Full Analysis):
+    Abnormality Type          → Calcification
+    BI-RADS Assessment        → 2 — Benign
+    Subtlety                  → 1
+    Breast Side               → LEFT
+    View                      → CC
+    Breast Density            → 2 — Scattered
+    Calc Type                 → PUNCTATE
+    Calc Distribution         → DIFFUSELY_SCATTERED
+
+  EXPECTED RESULT:
+    🟢 BENIGN — Very Low Risk (<10%). No recall/biopsy.
+Sub-class model: Biopsy Unlikely (<20%). Shows BENIGN_WITHOUT_CALLBACK.
+    Ensemble BI-RADS: BI-RADS 1/2 — No follow-up needed
+
+======================================================================
+
+HOW TO USE IN THE APP:
+  1. Launch:  cd /Users/alihamza/Desktop/AICD
+              /opt/anaconda3/envs/aicd/bin/streamlit run mammo_doctor.py
+  2. Upload the PNG from demo_images/ in the sidebar
+  3. Go to 🔬 AI Analysis tab — CNN result appears automatically
+  4. Go to 📋 Clinical Form tab — enter values from this sheet
+  5. Click Run Full Analysis → see Stage 1 + Sub-class + SHAP
+  6. Go to 📄 Report tab → Download PDF report
+
+DATASETS USED TO TRAIN ALL MODELS:
+  ┌─────────────────────────────────────────────────────────────┐
+  │ CBIS-DDSM  │ 3,568 cases │ US, 1990s film   │ TCIA         │
+  │ VinDr-Mammo│20,000 images│ Vietnam, digital  │ PhysioNet    │
+  │ Combined   │23,568 cases │ Multi-continental │ Public only  │
+  └─────────────────────────────────────────────────────────────┘
+
+======================================================================

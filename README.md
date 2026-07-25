@@ -97,41 +97,76 @@ MammoAI/
 
 ---
 
-## Quick Start
+## Try it in 30 seconds
+
+No dataset download needed — 7 ready-made demo mammograms ship with the repo.
 
 ```bash
-# 1. Clone
 git clone https://github.com/aliaht99/MammoAI.git
 cd MammoAI
+pip install -r requirements.txt
+./run.sh                     # opens the MammoDoctor app at http://localhost:8501
+```
 
+Then upload any image from `demo_images/` (e.g. `1_CLEAR_MALIGNANT_spiculated_mass.png`)
+and read off the prediction. `demo_images/DEMO_CHEATSHEET.txt` lists the expected
+result and clinical-form values for each of the 7 scenarios.
 
-# 2. Install dependencies
+> **Note:** the pre-trained clinical + ensemble models are bundled, so Stage 1,
+> Sub-class and the calibrated Ensemble work out of the box. The 74 MB CNN
+> checkpoint is not committed — the app runs fine without it and simply marks
+> Stage 2 / GradCAM as unavailable until you train it (step 7 below).
+
+**Two apps are included:**
+
+| Command | App | Best for |
+|---|---|---|
+| `./run.sh` | `mammo_doctor.py` | Full clinician-facing platform (5 tabs, uncertainty, GradCAM, PDF report) |
+| `./run.sh app` | `app.py` | Lightweight 3-tab demo |
+
+---
+
+## Full Pipeline (reproduce from raw data)
+
+```bash
+# 1. Install dependencies
 pip install -r requirements.txt
 
-# 3. Download CBIS-DDSM from TCIA (free account required)
+# 2. Download CBIS-DDSM from TCIA (free account required)
 #    https://doi.org/10.7937/K9/TCIA.2016.7O02S9CY
 
-# 4. Run Stage 1 (no images needed — CSV only)
+# 3. Run Stage 1 (no images needed — CSV only)
 python src/cancer_detection.py
 
-# 5. Run SHAP explainability
+# 4. Run SHAP explainability
 python src/shap_analysis.py
 
-# 6. Run BENIGN sub-class analysis
+# 5. Run BENIGN sub-class analysis
 python src/benign_subclass.py
 
-# 7. Train Stage 2 CNN (requires DICOM images + GPU/MPS)
+# 6. Train Stage 2 CNN (requires DICOM images + GPU/MPS + PyTorch)
+pip install -r requirements-cnn.txt
 cd stage2_cnn && python train.py
 
-# 8. Evaluate Stage 2 with TTA
+# 7. Evaluate Stage 2 with TTA
 python evaluate.py
 
-# 9. Run late-fusion (Stage 3)
+# 8. Run late-fusion (Stage 3)
 python fusion.py
 
-# 10. Launch web app
-cd .. && streamlit run app.py
+# 9. Launch web app
+cd .. && ./run.sh
 ```
+
+---
+
+## ⚕️ Intended Use & Disclaimer
+
+MammoAI is a **research and educational** project. It is **not a medical device**,
+has **not** been cleared or approved by any regulator (FDA, MHRA, CE, etc.), and
+**must not** be used for clinical diagnosis, screening decisions, or patient care.
+All outputs are experimental and must never replace a qualified radiologist. Do not
+upload identifiable patient data. Use is entirely at your own risk under the MIT License.
 
 ---
 

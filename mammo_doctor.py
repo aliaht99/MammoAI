@@ -260,15 +260,26 @@ p, span, label, div, h1, h2, h3, h4, li, td, th, .stMarkdown {
    STAGE PILLS
    ══════════════════════════════════════════ */
 .stage-pill {
-    display: inline-block;
-    padding: 0.32rem 0.95rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    width: 100%;
+    justify-content: center;
+    white-space: nowrap;
+    padding: 0.4rem 0.6rem;
     border-radius: 999px;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 800;
-    margin: 0.2rem 0.25rem;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
+    margin: 0.2rem 0;
+    letter-spacing: 0.2px;
 }
+.stage-pill .st-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    display: inline-block; flex: none;
+}
+.st-ok   { background: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.18); }
+.st-warn { background: #d97706; box-shadow: 0 0 0 3px rgba(217,119,6,0.18); }
+.st-off  { background: #9ca3af; box-shadow: 0 0 0 3px rgba(156,163,175,0.18); }
 .stage-1 { background: #dbeafe; color: #1e3a8a !important; border: 1.5px solid #93c5fd; }
 .stage-2 { background: #f3e8ff; color: #581c87 !important; border: 1.5px solid #c084fc; }
 .stage-3 { background: #dcfce7; color: #14532d !important; border: 1.5px solid #86efac; }
@@ -711,7 +722,7 @@ def read_image(uploaded_file) -> np.ndarray | None:
             return None
         ds  = pydicom.dcmread(uploaded_file)
         arr = ds.pixel_array.astype(float)
-        arr = ((arr - arr.min()) / (arr.ptp() + 1e-8) * 255).astype(np.uint8)
+        arr = ((arr - arr.min()) / (np.ptp(arr) + 1e-8) * 255).astype(np.uint8)
     else:
         arr = np.array(Image.open(uploaded_file).convert("L"))
     return arr
@@ -1210,22 +1221,39 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Model status bar
+def _pill(css: str, label: str, ok: bool, ready_txt: str, off_txt: str,
+          warn: bool = False):
+    dot = "st-warn" if (warn and not ok) else ("st-ok" if ok else "st-off")
+    txt = ready_txt if ok else off_txt
+    return (f'<span class="stage-pill {css}">'
+            f'<span class="st-dot {dot}"></span>{label} · {txt}</span>')
+
 c1, c2, c3, c4, c5 = st.columns(5)
 with c1:
-    status = "✅ Ready" if gb_model_loaded else "❌ Missing"
-    st.markdown(f'<span class="stage-pill stage-1">Stage 1 Clinical: {status}</span>', unsafe_allow_html=True)
+    st.markdown(_pill("stage-1", "Stage 1 Clinical", bool(gb_model_loaded),
+                      "Ready", "Missing"), unsafe_allow_html=True)
 with c2:
-    status = "✅ Ready" if (cnn_model is not None) else "⚠️ No checkpoint"
-    st.markdown(f'<span class="stage-pill stage-2">Stage 2 CNN+MC: {status}</span>', unsafe_allow_html=True)
+    st.markdown(_pill("stage-2", "Stage 2 CNN", cnn_model is not None,
+                      "Ready", "No checkpoint", warn=True), unsafe_allow_html=True)
 with c3:
-    status = "✅ Ready" if (cnn_model and gb_model_loaded) else "⚠️ Needs both"
-    st.markdown(f'<span class="stage-pill stage-3">Stage 3 Fusion: {status}</span>', unsafe_allow_html=True)
+    st.markdown(_pill("stage-3", "Stage 3 Fusion", bool(cnn_model and gb_model_loaded),
+                      "Ready", "Needs both", warn=True), unsafe_allow_html=True)
 with c4:
-    status = "✅ Ready" if benign_model else "❌ Missing"
-    st.markdown(f'<span class="stage-pill stage-1">Sub-class: {status}</span>', unsafe_allow_html=True)
+    st.markdown(_pill("stage-1", "Sub-class", bool(benign_model),
+                      "Ready", "Missing"), unsafe_allow_html=True)
 with c5:
-    status = "✅ ECE 0.052" if mammo_ensemble else "❌ Missing"
-    st.markdown(f'<span class="stage-pill stage-3">Ensemble: {status}</span>', unsafe_allow_html=True)
+    st.markdown(_pill("stage-3", "Ensemble", mammo_ensemble is not None,
+                      "ECE 0.052", "Missing"), unsafe_allow_html=True)
+
+# Research-use disclaimer (always visible)
+st.markdown("""
+<div style="background:#fffbeb;border:1.5px solid #fcd34d;border-radius:10px;
+            padding:0.55rem 1rem;margin:0.6rem 0 0.2rem;font-size:0.8rem;color:#78350f;">
+  <b>⚕️ Research &amp; education tool only.</b> MammoDoctor is <b>not a medical device</b>
+  and is <b>not cleared for clinical or diagnostic use</b>. Its outputs must never replace
+  a qualified radiologist. Do not upload identifiable patient data.
+</div>
+""", unsafe_allow_html=True)
 
 st.markdown("---")
 
@@ -1261,7 +1289,7 @@ with tab_ai:
 
         with col_img:
             st.markdown('<div class="card"><div class="card-title">📷 Mammogram</div>', unsafe_allow_html=True)
-            st.image(img_arr_display, use_column_width=True, caption=f"{uploaded.name}")
+            st.image(img_arr_display, width='stretch', caption=f"{uploaded.name}")
 
             # GradCAM
             if cnn_model is not None:
@@ -1269,7 +1297,7 @@ with tab_ai:
                     cam = compute_gradcam(cnn_model, uploaded_bytes, cnn_device)
                 if cam is not None:
                     overlay = overlay_gradcam(img_arr, cam, alpha=cam_alpha)
-                    st.image(overlay, use_column_width=True,
+                    st.image(overlay, width='stretch',
                              caption="GradCAM — suspicious regions highlighted")
             else:
                 st.info("CNN model not loaded — GradCAM unavailable.")
@@ -1319,7 +1347,7 @@ with tab_ai:
                 </div>""", unsafe_allow_html=True)
 
                 gauge = render_gauge(cnn_prob)
-                st.image(gauge, use_column_width=True)
+                st.image(gauge, width='stretch')
                 prob_bar(cnn_prob)
 
                 # ── Uncertainty panel ────────────────────────────────
@@ -1404,7 +1432,7 @@ with tab_ai:
                     ax2.spines["top"].set_visible(False); ax2.spines["right"].set_visible(False)
 
                     plt.tight_layout()
-                    st.pyplot(fig, use_container_width=True); plt.close(fig)
+                    st.pyplot(fig, width='stretch'); plt.close(fig)
 
                 # Recommendation
                 st.markdown("---")
@@ -1460,15 +1488,15 @@ with tab_image:
             n_cols = 2 + (1 if show_cam and "cnn_result" in st.session_state else 0)
             cols = st.columns(n_cols)
             with cols[0]:
-                st.image(img_arr, caption="Original", use_column_width=True)
+                st.image(img_arr, caption="Original", width='stretch')
             with cols[1]:
-                st.image(enhanced, caption="Enhanced", use_column_width=True)
+                st.image(enhanced, caption="Enhanced", width='stretch')
             if show_cam and "cnn_result" in st.session_state:
                 cam_stored = st.session_state["cnn_result"].get("cam")
                 if cam_stored is not None:
                     with cols[2]:
                         overlay = overlay_gradcam(img_arr, cam_stored, alpha=cam_alpha)
-                        st.image(overlay, caption="GradCAM", use_column_width=True)
+                        st.image(overlay, caption="GradCAM", width='stretch')
 
             if show_hist:
                 fig, ax = plt.subplots(figsize=(8, 2.5))
@@ -1476,7 +1504,7 @@ with tab_image:
                 ax.set_title("Pixel Intensity Distribution", fontweight="bold", fontsize=9)
                 ax.set_xlabel("Intensity (0–255)"); ax.set_ylabel("Count")
                 ax.spines["top"].set_visible(False); ax.spines["right"].set_visible(False)
-                st.pyplot(fig, use_container_width=True); plt.close(fig)
+                st.pyplot(fig, width='stretch'); plt.close(fig)
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -1542,7 +1570,7 @@ with tab_clinical:
         morph = ctr + cdr + msr + mmr
 
         st.markdown("---")
-        run_btn = st.button("⚡ Run Full Analysis", type="primary", use_container_width=True)
+        run_btn = st.button("⚡ Run Full Analysis", type="primary", width='stretch')
 
     with col_out:
         if run_btn:
@@ -1586,7 +1614,7 @@ with tab_clinical:
                 </div>""", unsafe_allow_html=True)
 
                 gauge = render_gauge(gb_prob)
-                st.image(gauge, use_column_width=True)
+                st.image(gauge, width='stretch')
                 prob_bar(gb_prob, f"Stage 1 Malignancy Probability")
 
                 # Sub-class result
@@ -1603,7 +1631,7 @@ with tab_clinical:
                 with st.spinner("Computing SHAP..."):
                     shap_buf = shap_waterfall_for_row(gb_model_loaded, row_df, None)
                 if shap_buf:
-                    st.image(shap_buf, use_column_width=True,
+                    st.image(shap_buf, width='stretch',
                              caption="Which features drove this prediction?")
                 else:
                     st.info("SHAP unavailable — install shap: pip install shap")
@@ -1614,7 +1642,7 @@ with tab_clinical:
                         "Feature": FEATURE_NAMES,
                         "Value":   [features[c] for c in FEATURE_COLS],
                     })
-                    st.dataframe(disp, hide_index=True, use_container_width=True)
+                    st.dataframe(disp, hide_index=True, width='stretch')
 
                 # Recommendation
                 st.markdown("---")
@@ -1765,7 +1793,7 @@ with tab_datasets:
             "Train Size": ["2,864", "3,103", "3,103", "1,683", "18,864"],
         }
         df_perf = pd.DataFrame(perf_data)
-        st.dataframe(df_perf, hide_index=True, use_container_width=True)
+        st.dataframe(df_perf, hide_index=True, width='stretch')
 
         st.markdown("### 🏗️ Architecture")
         st.code("""
@@ -1792,12 +1820,12 @@ CBIS + VinDr ──► Stage 1+: Multi-Dataset GB
         roc_path = RESULTS / "multi_dataset" / "multi_dataset_roc.png"
         if roc_path.exists():
             st.markdown("### Multi-Dataset ROC Curve")
-            st.image(str(roc_path), use_column_width=True)
+            st.image(str(roc_path), width='stretch')
 
         shap_path = RESULTS / "shap" / "shap_summary_bar.png"
         if shap_path.exists():
             st.markdown("### SHAP Feature Importance (Stage 1)")
-            st.image(str(shap_path), use_column_width=True)
+            st.image(str(shap_path), width='stretch')
 
     # ── Ensemble / Calibration section ──────────────────────────────────
     st.markdown("---")
@@ -1828,17 +1856,17 @@ CBIS + VinDr ──► Stage 1+: Multi-Dataset GB
         p = RESULTS / "calibration" / "reliability_after.png"
         if p.exists():
             st.markdown("**Calibration Curves (after temperature scaling)**")
-            st.image(str(p), use_column_width=True)
+            st.image(str(p), width='stretch')
     with cal_cols[1]:
         p = RESULTS / "calibration" / "uncertainty_analysis.png"
         if p.exists():
             st.markdown("**Model Disagreement → Error Rate**")
-            st.image(str(p), use_column_width=True)
+            st.image(str(p), width='stretch')
 
     p = RESULTS / "calibration" / "ece_comparison.png"
     if p.exists():
         st.markdown("**ECE Before vs After Calibration**")
-        st.image(str(p), use_column_width=True)
+        st.image(str(p), width='stretch')
 
     st.markdown("""
     **What makes this clinically novel:**

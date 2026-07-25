@@ -1,0 +1,6 @@
+# ── Optional: Stage 2 CNN (EfficientNet-B4) ───────────────────
+# Needed only to TRAIN or RUN the image CNN locally (GradCAM, TTA, fusion).
+# Not required for the Streamlit Cloud demo or the clinical/ensemble features.
+#   pip install -r requirements.txt -r requirements-cnn.txt
+torch>=2.1.0
+torchvision>=0.16.0

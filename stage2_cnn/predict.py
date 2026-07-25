@@ -47,7 +47,7 @@ def load_image_array(file_path: str) -> np.ndarray:
     if path.endswith(".dcm"):
         ds  = pydicom.dcmread(file_path)
         arr = ds.pixel_array.astype(float)
-        arr = (arr - arr.min()) / (arr.ptp() + 1e-8)
+        arr = (arr - arr.min()) / (np.ptp(arr) + 1e-8)
         arr = exposure.equalize_adapthist(arr,
                                           clip_limit=config.CLAHE_CLIP,
                                           kernel_size=config.CLAHE_GRID)

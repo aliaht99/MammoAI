@@ -142,7 +142,7 @@ def load_image(uploaded_file) -> np.ndarray | None:
             return None
         ds = pydicom.dcmread(uploaded_file)
         arr = ds.pixel_array.astype(float)
-        arr = ((arr - arr.min()) / (arr.ptp() + 1e-8) * 255).astype(np.uint8)
+        arr = ((arr - arr.min()) / (np.ptp(arr) + 1e-8) * 255).astype(np.uint8)
         return arr
     else:
         pil = Image.open(uploaded_file).convert("L")  # grayscale
@@ -447,7 +447,7 @@ with tab_predict:
         morph_risk = calc_type_risk + calc_dist_risk + mass_shape_risk + mass_margin_risk
 
         st.markdown("---")
-        run = st.button("🔬 Run Analysis", type="primary", use_container_width=True)
+        run = st.button("🔬 Run Analysis", type="primary", width='stretch')
 
     # ── results panel ─────────────────────────────────────────────────────
     with col_result:
@@ -486,7 +486,7 @@ with tab_predict:
 
             # gauge
             gauge_buf = render_gauge(prob)
-            st.image(gauge_buf, caption="Malignancy Probability", use_column_width=True)
+            st.image(gauge_buf, caption="Malignancy Probability", width='stretch')
             probability_bar(prob)
 
             # metrics row
@@ -513,7 +513,7 @@ with tab_predict:
                     "Feature":  [FEATURE_LABELS[c] for c in FEATURE_COLS],
                     "Value":    [features[c] for c in FEATURE_COLS],
                 })
-                st.dataframe(df_show, hide_index=True, use_container_width=True)
+                st.dataframe(df_show, hide_index=True, width='stretch')
 
             # recommendations
             st.markdown("---")
@@ -564,12 +564,12 @@ with tab_image:
         col_orig, col_enh = st.columns(2, gap="medium")
         with col_orig:
             st.markdown("#### Original Image")
-            st.image(img_arr, caption="Original", use_column_width=True, clamp=True)
+            st.image(img_arr, caption="Original", width='stretch', clamp=True)
 
         with col_enh:
             st.markdown("#### Enhanced Image")
             st.image(enhanced, caption="Enhanced (adjust sliders in sidebar)",
-                     use_column_width=True, clamp=True)
+                     width='stretch', clamp=True)
 
         st.markdown("---")
         st.markdown("#### 📊 Image Statistics")
@@ -584,7 +584,7 @@ with tab_image:
         col_hist, col_info = st.columns([1.2, 0.8], gap="medium")
         with col_hist:
             hist_buf = histogram_chart(img_arr)
-            st.image(hist_buf, use_column_width=True)
+            st.image(hist_buf, width='stretch')
 
         with col_info:
             st.markdown("#### Image Info")
@@ -629,7 +629,7 @@ with tab_info:
             {"Model": "SVM (RBF)",         "AUC-ROC": 0.8410, "Sensitivity": 0.85, "Specificity": 0.63},
             {"Model": "Logistic Reg.",     "AUC-ROC": 0.7930, "Sensitivity": 0.79, "Specificity": 0.57},
         ])
-        st.dataframe(comparison, hide_index=True, use_container_width=True)
+        st.dataframe(comparison, hide_index=True, width='stretch')
 
         st.markdown("### Feature Descriptions")
         st.markdown("""
@@ -650,13 +650,13 @@ with tab_info:
         fi_buf = feature_importance_chart(model)
         if fi_buf:
             st.markdown("### Feature Importance")
-            st.image(fi_buf, use_column_width=True)
+            st.image(fi_buf, width='stretch')
 
         if RESULTS_DIR.exists():
             roc_path = RESULTS_DIR / "roc_pr_curves.png"
             if roc_path.exists():
                 st.markdown("### ROC / PR Curves")
-                st.image(str(roc_path), use_column_width=True)
+                st.image(str(roc_path), width='stretch')
 
         st.markdown("""
 ### BI-RADS Reference
