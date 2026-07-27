@@ -4,8 +4,12 @@
 # for that (the cloud demo runs fine without it; it just disables GradCAM/CNN).
 
 # ── Core ML ───────────────────────────────────────────────────
-scikit-learn>=1.4.0
-numpy>=1.26.0
+# PINNED: the bundled .pkl models were serialised with scikit-learn 1.8.0.
+# Loading them under 1.9+ raises "ModuleNotFoundError: No module named '_loss'",
+# so this pin is required for the app to start. Re-train and re-save the models
+# before relaxing it.
+scikit-learn==1.8.0
+numpy>=2.0.0
 pandas>=2.2.0
 scipy>=1.12.0
 
