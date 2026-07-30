@@ -1,0 +1,13 @@
+# Render blueprint — free, always-reachable hosting for the MammoAI demo.
+# Deploy: https://dashboard.render.com/blueprints  →  connect aliaht99/MammoAI
+# The free plan spins the container down when idle; the first request after a
+# quiet spell takes ~1 minute to wake, then it is instant.
+services:
+  - type: web
+    name: mammoai
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /_stcore/health
+    autoDeploy: true

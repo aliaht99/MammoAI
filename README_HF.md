@@ -3,8 +3,8 @@ title: MammoAI — Breast Cancer Detection
 emoji: 🏥
 colorFrom: blue
 colorTo: indigo
-sdk: streamlit
-app_file: mammo_doctor.py
+sdk: docker
+app_port: 7860
 pinned: false
 license: mit
 short_description: Interpretable multi-modal breast cancer detection (research demo)
