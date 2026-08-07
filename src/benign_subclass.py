@@ -43,9 +43,11 @@ from sklearn.metrics import (
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
 DATA_DIR = Path("/Users/alihamza/Desktop/AICD/manifest-ZkhPvrLo5216730872708713142")
-OUT_DIR  = Path("/Users/alihamza/Desktop/AICD/results/benign_subclass")
-OUT_DIR.mkdir(parents=True, exist_ok=True)
-
+OUT_DIR  = Path(__file__).resolve().parent.parent / "results" / "benign_subclass"
+try:
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+except OSError:
+    pass  # read-only filesystem (e.g. Streamlit Cloud): outputs just are not written
 CALC_TRAIN = DATA_DIR / "calc_case_description_train_set.csv"
 CALC_TEST  = DATA_DIR / "calc_case_description_test_set.csv"
 MASS_TRAIN = DATA_DIR / "mass_case_description_train_set.csv"

@@ -59,9 +59,11 @@ from sklearn.metrics import (
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
 DATA_DIR = Path("/Users/alihamza/Desktop/AICD/manifest-ZkhPvrLo5216730872708713142")
-OUT_DIR  = Path("/Users/alihamza/Desktop/AICD/results/cross_dataset")
-OUT_DIR.mkdir(parents=True, exist_ok=True)
-
+OUT_DIR  = Path(__file__).resolve().parent.parent / "results" / "cross_dataset"
+try:
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+except OSError:
+    pass  # read-only filesystem (e.g. Streamlit Cloud): outputs just are not written
 CALC_TRAIN = DATA_DIR / "calc_case_description_train_set.csv"
 CALC_TEST  = DATA_DIR / "calc_case_description_test_set.csv"
 MASS_TRAIN = DATA_DIR / "mass_case_description_train_set.csv"
@@ -234,7 +236,7 @@ def main(vindr_dir: str | None = None):
 
     # ── 2. Load VinDr-Mammo ───────────────────────────────────────────────────
     if vindr_dir is None:
-        vindr_dir = "/Users/alihamza/Desktop/AICD/vindr-mammo"
+        vindr_dir = str(Path(__file__).resolve().parent.parent / "vindr-mammo")
 
     print(f"\n[2/5] Loading VinDr-Mammo (target domain) from {vindr_dir}...")
     try:

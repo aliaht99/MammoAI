@@ -39,9 +39,11 @@ except ImportError:
 
 # ── Paths ──────────────────────────────────────────────────────────────────
 DATA_DIR = Path("/Users/alihamza/Desktop/AICD/manifest-ZkhPvrLo5216730872708713142")
-OUT_DIR  = Path("/Users/alihamza/Desktop/AICD/demo_images")
-OUT_DIR.mkdir(exist_ok=True)
-
+OUT_DIR  = Path(__file__).resolve().parent.parent / "demo_images"
+try:
+    OUT_DIR.mkdir(exist_ok=True)
+except OSError:
+    pass  # read-only filesystem (e.g. Streamlit Cloud): outputs just are not written
 # Load CSVs
 def load_csv(path):
     df = pd.read_csv(path, skipinitialspace=True)

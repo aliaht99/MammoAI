@@ -49,15 +49,20 @@ from sklearn.metrics import (
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 
 # ── Paths ──────────────────────────────────────────────────────────────────
-BASE_DIR   = Path("/Users/alihamza/Desktop/AICD")
+BASE_DIR   = Path(__file__).resolve().parent.parent
 DATA_DIR   = BASE_DIR / "manifest-ZkhPvrLo5216730872708713142"
 VINDR_DIR  = BASE_DIR / "vindr-mammo"
 MODELS_DIR = BASE_DIR / "models"
 OUT_DIR    = BASE_DIR / "results" / "multi_dataset"
 
-MODELS_DIR.mkdir(parents=True, exist_ok=True)
-OUT_DIR.mkdir(parents=True, exist_ok=True)
-
+try:
+    MODELS_DIR.mkdir(parents=True, exist_ok=True)
+except OSError:
+    pass  # read-only filesystem (e.g. Streamlit Cloud): outputs just are not written
+try:
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+except OSError:
+    pass  # read-only filesystem (e.g. Streamlit Cloud): outputs just are not written
 # CBIS-DDSM CSVs
 CBIS_CALC_TRAIN = DATA_DIR / "calc_case_description_train_set.csv"
 CBIS_CALC_TEST  = DATA_DIR / "calc_case_description_test_set.csv"

@@ -41,9 +41,10 @@ from model import load_checkpoint
 
 CKPT_PATH = config.CKPT_DIR / "best_model.pth"
 RESULTS_DIR = config.RESULTS_DIR / "fusion"
-RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-
-
+try:
+    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+except OSError:
+    pass  # read-only filesystem (e.g. Streamlit Cloud): outputs just are not written
 # ── Clinical feature engineering (mirrors src/cancer_detection.py) ──────────
 CALC_TYPE_RISK = {
     "PLEOMORPHIC": 3, "FINE_LINEAR_BRANCHING": 3,

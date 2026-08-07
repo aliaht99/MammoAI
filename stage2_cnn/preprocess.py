@@ -24,9 +24,10 @@ sys.path.insert(0, str(Path(__file__).parent))
 import config
 
 PNG_DIR = Path(__file__).parent / "png_cache"
-PNG_DIR.mkdir(exist_ok=True)
-
-
+try:
+    PNG_DIR.mkdir(exist_ok=True)
+except OSError:
+    pass  # read-only filesystem (e.g. Streamlit Cloud): outputs just are not written
 def find_all_mammograms() -> list[Path]:
     """Find every full-mammogram DICOM on disk."""
     hits = list(config.DICOM_ROOT.rglob("*full mammogram*/*.dcm"))

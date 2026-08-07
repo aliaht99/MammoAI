@@ -45,11 +45,13 @@ from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler
 
 # ── Paths ──────────────────────────────────────────────────────────────────
-BASE   = Path("/Users/alihamza/Desktop/AICD")
+BASE   = Path(__file__).resolve().parent.parent
 MODELS = BASE / "models"
 OUT    = BASE / "results" / "calibration"
-OUT.mkdir(parents=True, exist_ok=True)
-
+try:
+    OUT.mkdir(parents=True, exist_ok=True)
+except OSError:
+    pass  # read-only filesystem (e.g. Streamlit Cloud): outputs just are not written
 sys.path.insert(0, str(BASE / "stage2_cnn"))
 
 DATA_DIR  = BASE / "manifest-ZkhPvrLo5216730872708713142"

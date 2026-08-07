@@ -9,7 +9,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 
 DATA_DIR = Path("/Users/alihamza/Desktop/AICD/manifest-ZkhPvrLo5216730872708713142")
-OUT_DIR  = Path("/Users/alihamza/Desktop/AICD")
+OUT_DIR  = Path(__file__).resolve().parent.parent
 
 CALC_TYPE_RISK = {
     "PLEOMORPHIC": 3, "AMORPHOUS": 2, "HETEROGENEOUS": 2,

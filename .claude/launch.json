@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "mammo-doctor",
+      "runtimeExecutable": "/opt/anaconda3/envs/aicd/bin/streamlit",
+      "runtimeArgs": ["run", "mammo_doctor.py", "--server.port", "8501", "--server.headless", "true"],
+      "port": 8501
+    }
+  ]
+}
