@@ -126,71 +126,205 @@ p, span, label, div, h1, h2, h3, h4, li, td, th, .stMarkdown {
    SIDEBAR — deep navy, crisp white text
    ══════════════════════════════════════════ */
 [data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #0a1628 0%, #0f2347 100%) !important;
-    border-right: 3px solid #2563eb !important;
+    background: linear-gradient(180deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%) !important;
+    border-right: 4px solid #22d3ee !important;
 }
-[data-testid="stSidebar"] * { color: #f0f6ff !important; }
-[data-testid="stSidebar"] .stTextInput input,
-[data-testid="stSidebar"] .stSelectbox select {
-    background: #1e3a6e !important;
+[data-testid="stSidebar"] * { color: #ffffff !important; }
+
+/* Widget labels — these were dark navy on a near-black panel and unreadable.
+   Bright white, higher weight, beats the generic label rule on specificity. */
+[data-testid="stSidebar"] label,
+[data-testid="stSidebar"] [data-testid="stWidgetLabel"],
+[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p,
+[data-testid="stSidebar"] .stTextInput label,
+[data-testid="stSidebar"] .stSelectbox label,
+[data-testid="stSidebar"] .stSlider label,
+[data-testid="stSidebar"] .stRadio label,
+[data-testid="stSidebar"] .stCheckbox label,
+[data-testid="stSidebar"] .stFileUploader label {
     color: #ffffff !important;
-    border: 1px solid #3b7dd8 !important;
-    border-radius: 6px !important;
-}
-[data-testid="stSidebar"] hr { border-color: #2563eb !important; opacity: 0.4; }
-[data-testid="stSidebar"] .stFileUploader {
-    background: #1e3a6e !important;
-    border: 2px dashed #3b7dd8 !important;
-    border-radius: 10px !important;
-}
-[data-testid="stSidebar"] .stFileUploader * { color: #cce0ff !important; }
-[data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
-    color: #60a5fa !important;
     font-weight: 700 !important;
-    border-bottom: 1px solid #2563eb;
-    padding-bottom: 4px;
+    font-size: 0.88rem !important;
+    letter-spacing: 0.2px !important;
 }
+
+/* Input fields — white cards on the blue panel, dark text you can actually read */
+[data-testid="stSidebar"] input,
+[data-testid="stSidebar"] textarea,
+[data-testid="stSidebar"] .stTextInput input,
+[data-testid="stSidebar"] .stNumberInput input,
+[data-testid="stSidebar"] .stDateInput input {
+    background: #ffffff !important;
+    color: #0b2545 !important;
+    border: 2px solid #bfdbfe !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+}
+[data-testid="stSidebar"] input:focus,
+[data-testid="stSidebar"] textarea:focus {
+    border-color: #22d3ee !important;
+    box-shadow: 0 0 0 3px rgba(34,211,238,0.45) !important;
+}
+[data-testid="stSidebar"] [data-baseweb="select"] > div,
+[data-testid="stSidebar"] [data-testid="stSelectbox"] > div > div {
+    background: #ffffff !important;
+    border: 2px solid #bfdbfe !important;
+    border-radius: 8px !important;
+}
+/* Streamlit renders the chosen value as a bare <div>, so it inherits the
+   sidebar's white text and vanishes on the white field. Catch everything. */
+[data-testid="stSidebar"] [data-baseweb="select"],
+[data-testid="stSidebar"] [data-baseweb="select"] * {
+    color: #0b2545 !important;
+    font-weight: 600 !important;
+}
+[data-testid="stSidebar"] [data-baseweb="select"] svg {
+    fill: #2563eb !important;
+    color: #2563eb !important;
+}
+
+[data-testid="stSidebar"] hr { border-color: #bae6fd !important; opacity: 0.55; }
+/* File uploader — white dropzone, dark text. Streamlit's inner <section> and the
+   browse button's inner <div> both need explicit colours or they render white
+   text on a white panel. */
+[data-testid="stSidebar"] .stFileUploader,
+[data-testid="stSidebar"] [data-testid="stFileUploaderDropzone"],
+[data-testid="stSidebar"] .stFileUploader section {
+    background: #ffffff !important;
+    border: 3px dashed #38bdf8 !important;
+    border-radius: 12px !important;
+}
+[data-testid="stSidebar"] .stFileUploader,
+[data-testid="stSidebar"] .stFileUploader *,
+[data-testid="stSidebar"] [data-testid="stFileUploaderDropzone"] * {
+    color: #0b2545 !important;
+}
+[data-testid="stSidebar"] .stFileUploader small,
+[data-testid="stSidebar"] [data-testid="stFileUploaderDropzoneInstructions"] small {
+    color: #475569 !important;
+}
+[data-testid="stSidebar"] .stFileUploader svg { fill: #2563eb !important; }
+[data-testid="stSidebar"] .stFileUploader button,
+[data-testid="stSidebar"] .stFileUploader button * {
+    background: #2563eb !important;
+    color: #ffffff !important;
+    font-weight: 800 !important;
+    border: none !important;
+    border-radius: 8px !important;
+}
+[data-testid="stSidebar"] .stFileUploader button svg { fill: #ffffff !important; }
+/* The uploader's own caption sits outside the dropzone, on the blue panel */
+[data-testid="stSidebar"] .stFileUploader > label,
+[data-testid="stSidebar"] .stFileUploader > label * {
+    color: #ffffff !important;
+}
+[data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
+    color: #ffffff !important;
+    font-weight: 800 !important;
+    border-bottom: 2px solid #67e8f9;
+    padding-bottom: 5px;
+}
+/* Sidebar slider — the default blue track is the same blue as the panel, so it
+   disappears. Cyan fill, translucent-white remainder, white thumb. */
+[data-testid="stSidebar"] [data-baseweb="slider"] > div > div:last-child {
+    background: rgba(255,255,255,0.50) !important;
+}
+[data-testid="stSidebar"] [data-baseweb="slider"] > div > div > div {
+    background: #22d3ee !important;
+}
+[data-testid="stSidebar"] [data-baseweb="slider"] div[role="slider"] {
+    background: #ffffff !important;
+    border: 3px solid #22d3ee !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.28) !important;
+}
+[data-testid="stSidebar"] [data-testid="stSliderThumbValue"],
+[data-testid="stSidebar"] [data-testid="stSliderTickBar"] p {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+}
+/* Sidebar checkbox — the tick box is the <span> wrapping the input, not a div */
+[data-testid="stSidebar"] [data-testid="stCheckbox"] label > span:first-child {
+    background: rgba(255,255,255,0.30) !important;
+    border: 2px solid #ffffff !important;
+    border-radius: 5px !important;
+}
+[data-testid="stSidebar"] [data-testid="stCheckbox"] label:has(input:checked) > span:first-child {
+    background: #22d3ee !important;
+    border-color: #ffffff !important;
+}
+[data-testid="stSidebar"] [data-testid="stCheckbox"] label > div,
+[data-testid="stSidebar"] [data-testid="stCheckbox"] label p {
+    background: transparent !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+}
+
+/* Sidebar expander — the shared near-white panel plus the sidebar's white text
+   rule made this an empty white box. White panel, dark text. */
+[data-testid="stSidebar"] div[data-testid="stExpander"] {
+    background: #ffffff !important;
+    border: 2px solid #bae6fd !important;
+    border-radius: 12px !important;
+}
+[data-testid="stSidebar"] div[data-testid="stExpander"] *,
+[data-testid="stSidebar"] div[data-testid="stExpander"] summary,
+[data-testid="stSidebar"] div[data-testid="stExpander"] p,
+[data-testid="stSidebar"] div[data-testid="stExpander"] li {
+    color: #0b2545 !important;
+}
+[data-testid="stSidebar"] div[data-testid="stExpander"] summary {
+    font-weight: 800 !important;
+    color: #1d4ed8 !important;
+}
+[data-testid="stSidebar"] div[data-testid="stExpander"] svg { fill: #1d4ed8 !important; }
 
 /* ══════════════════════════════════════════
    TAB BAR
    ══════════════════════════════════════════ */
 [data-testid="stTabs"] [role="tablist"] {
-    background: #f1f5f9;
-    border-radius: 12px;
-    padding: 4px;
-    gap: 4px;
+    background: #e0f2fe;
+    border: 2px solid #bae6fd;
+    border-radius: 14px;
+    padding: 5px;
+    gap: 5px;
 }
 [data-testid="stTabs"] [role="tab"] {
-    border-radius: 9px !important;
-    font-weight: 600 !important;
-    font-size: 0.88rem !important;
-    color: #374151 !important;
-    padding: 0.5rem 1.1rem !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    font-size: 0.9rem !important;
+    color: #0c4a6e !important;
+    padding: 0.55rem 1.2rem !important;
+}
+[data-testid="stTabs"] [role="tab"]:hover {
+    background: #ffffff !important;
+    color: #1d4ed8 !important;
 }
 [data-testid="stTabs"] [role="tab"][aria-selected="true"] {
-    background: #2563eb !important;
+    background: linear-gradient(135deg, #0ea5e9, #2563eb) !important;
     color: #ffffff !important;
+    box-shadow: 0 3px 10px rgba(37,99,235,0.4) !important;
 }
+[data-testid="stTabs"] [role="tab"][aria-selected="true"] p { color: #ffffff !important; }
 
 /* ══════════════════════════════════════════
    HEADER BANNER
    ══════════════════════════════════════════ */
 .main-header {
-    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 55%, #3b82f6 100%);
-    padding: 1.8rem 2.4rem;
+    background: linear-gradient(120deg, #0891b2 0%, #2563eb 45%, #7c3aed 100%);
+    padding: 1.9rem 2.4rem;
     border-radius: 18px;
     margin-bottom: 1.4rem;
     color: #ffffff !important;
-    box-shadow: 0 6px 30px rgba(37,99,235,0.35);
-    border: none;
+    box-shadow: 0 8px 34px rgba(37,99,235,0.42);
+    border-bottom: 4px solid #22d3ee;
 }
 .main-header h1 {
     margin: 0; font-size: 2rem; font-weight: 900;
     letter-spacing: -0.8px; color: #ffffff !important;
 }
 .main-header p {
-    margin: 0.4rem 0 0; font-size: 0.9rem;
-    color: rgba(255,255,255,0.85) !important;
+    margin: 0.45rem 0 0; font-size: 0.92rem; font-weight: 600;
+    color: #ecfeff !important;
 }
 
 /* ══════════════════════════════════════════
@@ -232,24 +366,25 @@ p, span, label, div, h1, h2, h3, h4, li, td, th, .stMarkdown {
    METRIC BOXES — white with bold numbers
    ══════════════════════════════════════════ */
 .metric-box {
-    background: #ffffff;
+    background: linear-gradient(180deg, #ffffff 0%, #f0f9ff 100%);
     border-radius: 14px;
     padding: 1.1rem 0.8rem;
     text-align: center;
-    border: 2px solid #e2e8f0;
-    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+    border: 2px solid #7dd3fc;
+    border-top: 5px solid #0ea5e9;
+    box-shadow: 0 4px 14px rgba(14,165,233,0.18);
     transition: transform 0.15s;
 }
 .metric-box:hover { transform: translateY(-2px); }
 .metric-box .val {
     font-size: 1.85rem;
     font-weight: 900;
-    color: #1e3a8a !important;
+    color: #0369a1 !important;
     line-height: 1.1;
 }
 .metric-box .lbl {
-    font-size: 0.7rem;
-    color: #4b5563 !important;
+    font-size: 0.72rem;
+    color: #1e3a5f !important;
     margin-top: 4px;
     font-weight: 700;
     text-transform: uppercase;
@@ -266,23 +401,26 @@ p, span, label, div, h1, h2, h3, h4, li, td, th, .stMarkdown {
     width: 100%;
     justify-content: center;
     white-space: nowrap;
-    padding: 0.4rem 0.6rem;
+    padding: 0.48rem 0.7rem;
     border-radius: 999px;
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     font-weight: 800;
     margin: 0.2rem 0;
     letter-spacing: 0.2px;
+    color: #ffffff !important;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.16);
 }
 .stage-pill .st-dot {
     width: 8px; height: 8px; border-radius: 50%;
     display: inline-block; flex: none;
 }
-.st-ok   { background: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.18); }
-.st-warn { background: #d97706; box-shadow: 0 0 0 3px rgba(217,119,6,0.18); }
-.st-off  { background: #9ca3af; box-shadow: 0 0 0 3px rgba(156,163,175,0.18); }
-.stage-1 { background: #dbeafe; color: #1e3a8a !important; border: 1.5px solid #93c5fd; }
-.stage-2 { background: #f3e8ff; color: #581c87 !important; border: 1.5px solid #c084fc; }
-.stage-3 { background: #dcfce7; color: #14532d !important; border: 1.5px solid #86efac; }
+.st-ok   { background: #a7f3d0; box-shadow: 0 0 0 3px rgba(255,255,255,0.55); }
+.st-warn { background: #fde047; box-shadow: 0 0 0 3px rgba(255,255,255,0.55); }
+.st-off  { background: #e5e7eb; box-shadow: 0 0 0 3px rgba(255,255,255,0.4); }
+.stage-pill, .stage-pill * { color: #ffffff !important; }
+.stage-1 { background: linear-gradient(135deg, #2563eb, #3b82f6); border: none; }
+.stage-2 { background: linear-gradient(135deg, #7c3aed, #a855f7); border: none; }
+.stage-3 { background: linear-gradient(135deg, #059669, #10b981); border: none; }
 
 /* ══════════════════════════════════════════
    CONTENT CARDS
@@ -291,17 +429,18 @@ p, span, label, div, h1, h2, h3, h4, li, td, th, .stMarkdown {
     background: #ffffff;
     border-radius: 16px;
     padding: 1.5rem 1.7rem;
-    border: 2px solid #e2e8f0;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+    border: 2px solid #bae6fd;
+    border-left: 6px solid #0ea5e9;
+    box-shadow: 0 4px 18px rgba(14,165,233,0.14);
     margin-bottom: 1.1rem;
 }
 .card-title {
     font-size: 1.05rem;
     font-weight: 800;
-    color: #1e3a8a !important;
+    color: #0369a1 !important;
     margin-bottom: 0.9rem;
     padding-bottom: 0.4rem;
-    border-bottom: 2px solid #dbeafe;
+    border-bottom: 3px solid #7dd3fc;
 }
 
 /* ══════════════════════════════════════════
@@ -1247,8 +1386,10 @@ with c5:
 
 # Research-use disclaimer (always visible)
 st.markdown("""
-<div style="background:#fffbeb;border:1.5px solid #fcd34d;border-radius:10px;
-            padding:0.55rem 1rem;margin:0.6rem 0 0.2rem;font-size:0.8rem;color:#78350f;">
+<div style="background:linear-gradient(135deg,#fef9c3,#fef3c7);
+            border:2px solid #f59e0b;border-left:6px solid #f59e0b;border-radius:10px;
+            padding:0.65rem 1.1rem;margin:0.7rem 0 0.2rem;font-size:0.83rem;
+            color:#78350f;font-weight:600;">
   <b>⚕️ Research &amp; education tool only.</b> MammoDoctor is <b>not a medical device</b>
   and is <b>not cleared for clinical or diagnostic use</b>. Its outputs must never replace
   a qualified radiologist. Do not upload identifiable patient data.
@@ -1275,11 +1416,12 @@ tab_ai, tab_image, tab_clinical, tab_report, tab_datasets = st.tabs([
 with tab_ai:
     if img_arr is None:
         st.markdown("""
-        <div style="background:#eef2ff;border-radius:16px;padding:4rem;text-align:center;
-                    border:2px dashed #aabcf0;">
+        <div style="background:linear-gradient(135deg,#e0f2fe 0%,#ede9fe 100%);
+                    border-radius:16px;padding:3.6rem 2rem;text-align:center;
+                    border:3px dashed #38bdf8;box-shadow:0 6px 24px rgba(14,165,233,0.16);">
           <div style="font-size:4rem;">🩺</div>
-          <h3 style="color:#0f2044;margin:0.8rem 0 0.4rem;">Upload a Mammogram to Begin</h3>
-          <p style="color:#666;font-size:0.93rem;">
+          <h3 style="color:#0c4a6e;margin:0.8rem 0 0.4rem;font-weight:800;">Upload a Mammogram to Begin</h3>
+          <p style="color:#1e3a5f;font-size:0.95rem;font-weight:500;">
             Use the sidebar to upload a DICOM (.dcm), PNG, or JPG file.<br>
             The CNN will analyse it automatically and generate a GradCAM heatmap.
           </p>
